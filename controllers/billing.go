@@ -101,26 +101,27 @@ func (b *BillingController) GetPaymentToken() {
 // ...
 func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
-	//fmt.Println("before  1: ", ioutil.ReadAll(b.Ctx.Request.Body))
-	fmt.Println("before  2: ", string(b.Ctx.Input.RequestBody[:]))
+
+	signature := b.Ctx.Request.Header.Get("Authorization Signature ")
+	xsollaData.Signature = signature
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-
 	err := json.Unmarshal(body, &xsollaData)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
 
-	fmt.Println("xsollaData: ", xsollaData.NotificationType)
-	fmt.Println("xsollaData: ", xsollaData.Purchase.Total.Amount)
-	fmt.Println("xsollaData: ", xsollaData.Purchase.Total.Currency)
-	fmt.Println("xsollaData: ", xsollaData.Signature)
-	fmt.Println("xsollaData: ", xsollaData.Transaction.ExternalID)
-	fmt.Println("xsollaData: ", xsollaData.Transaction.ID)
-	fmt.Println("xsollaData: ", xsollaData.Transaction.PaymentDate)
-	fmt.Println("xsollaData: ", xsollaData.User.ID)
-	fmt.Println("xsollaData: ", xsollaData.User.Email)
-	fmt.Println("xsollaData: ", xsollaData.User.Ip)
+	fmt.Println("xsollaData.Signature: ", xsollaData.Signature)
+	fmt.Println("xsollaData.NotificationType: ", xsollaData.NotificationType)
+	fmt.Println("xsollaData.Purchase.Total.Amount: ", xsollaData.Purchase.Total.Amount)
+	fmt.Println("xsollaData.Purchase.Total.Currency: ", xsollaData.Purchase.Total.Currency)
+	fmt.Println("xsollaData.Signature: ", xsollaData.Signature)
+	fmt.Println("xsollaData.Transaction.ExternalID: ", xsollaData.Transaction.ExternalID)
+	fmt.Println("xsollaData.Transaction.ID: ", xsollaData.Transaction.ID)
+	fmt.Println("xsollaData.Transaction.PaymentDate: ", xsollaData.Transaction.PaymentDate)
+	fmt.Println("xsollaData.User.ID: ", xsollaData.User.ID)
+	fmt.Println("xsollaData.User.Email: ", xsollaData.User.Email)
+	fmt.Println("xsollaData.User.Ip: ", xsollaData.User.Ip)
 
 	b.ResponseSuccess("", "")
 
