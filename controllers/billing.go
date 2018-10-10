@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"github.com/YoungsoonLee/api-ndc/libs"
@@ -100,10 +101,12 @@ func (b *BillingController) GetPaymentToken() {
 // ...
 func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
-	fmt.Println("before  1: ", string(b.Ctx.Request.Body[:]))
+	//fmt.Println("before  1: ", ioutil.ReadAll(b.Ctx.Request.Body))
 	fmt.Println("before  2: ", string(b.Ctx.Input.RequestBody[:]))
 
-	err := json.Unmarshal(b.Ctx.Input.RequestBody, &xsollaData)
+	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
+
+	err := json.Unmarshal(body, &xsollaData)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
