@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -139,8 +138,6 @@ func (c *AuthController) Login() {
 		c.ResponseError(libs.ErrPass, err)
 	}
 
-	fmt.Println("test: 1", err)
-
 	if user.Provider == "facebook" && user.Password == "" {
 		c.ResponseError(libs.ErrLoginFacebook, nil)
 	}
@@ -148,16 +145,12 @@ func (c *AuthController) Login() {
 		c.ResponseError(libs.ErrLoginGoogle, nil)
 	}
 
-	fmt.Println("test: 2", err)
-
 	// check password
 	ok, err := user.CheckPass(inputPass)
 	if !ok || err != nil {
 		// wrong password
 		c.ResponseError(libs.ErrPass, err)
 	}
-
-	fmt.Println("test: 3", err)
 
 	c.makeLogin(&user)
 }
