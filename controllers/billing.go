@@ -113,4 +113,6 @@ func (b *BillingController) CallbackXsolla() {
 
 	fmt.Println("xsollaData: ", xsollaData)
 
+	b.ResponseSuccess("", "")
+
 }
