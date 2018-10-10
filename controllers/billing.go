@@ -111,7 +111,11 @@ func (b *BillingController) CallbackXsolla() {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
 
-	fmt.Println("xsollaData: ", xsollaData)
+	fmt.Println("xsollaData: ", xsollaData.NotificationType)
+	fmt.Println("xsollaData: ", xsollaData.Purchase)
+	fmt.Println("xsollaData: ", xsollaData.Signature)
+	fmt.Println("xsollaData: ", xsollaData.Transaction)
+	fmt.Println("xsollaData: ", xsollaData.User)
 
 	b.ResponseSuccess("", "")
 
