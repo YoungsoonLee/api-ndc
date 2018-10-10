@@ -31,7 +31,7 @@ type XSpurchase struct {
 }
 
 type XStransaction struct {
-	ID          string    `json:"id"`           // TxID from Xsolla
+	ID          int       `json:"id"`           // TxID from Xsolla
 	ExternalID  string    `json:"external_id"`  // PxID
 	PaymentDate time.Time `json:"payment_date"` // transaction_at
 }
