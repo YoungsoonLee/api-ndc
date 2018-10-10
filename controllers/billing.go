@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/YoungsoonLee/api-ndc/libs"
@@ -102,7 +103,7 @@ func (b *BillingController) GetPaymentToken() {
 func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
 
-	signature := b.Ctx.Request.Header.Get("Authorization ")
+	signature := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
 	xsollaData.Signature = signature
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
