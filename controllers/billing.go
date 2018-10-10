@@ -112,10 +112,15 @@ func (b *BillingController) CallbackXsolla() {
 	}
 
 	fmt.Println("xsollaData: ", xsollaData.NotificationType)
-	fmt.Println("xsollaData: ", xsollaData.Purchase)
+	fmt.Println("xsollaData: ", xsollaData.Purchase.Total.Amount)
+	fmt.Println("xsollaData: ", xsollaData.Purchase.Total.Currency)
 	fmt.Println("xsollaData: ", xsollaData.Signature)
-	fmt.Println("xsollaData: ", xsollaData.Transaction)
-	fmt.Println("xsollaData: ", xsollaData.User)
+	fmt.Println("xsollaData: ", xsollaData.Transaction.ExternalID)
+	fmt.Println("xsollaData: ", xsollaData.Transaction.ID)
+	fmt.Println("xsollaData: ", xsollaData.Transaction.PaymentDate)
+	fmt.Println("xsollaData: ", xsollaData.User.ID)
+	fmt.Println("xsollaData: ", xsollaData.User.Email)
+	fmt.Println("xsollaData: ", xsollaData.User.Ip)
 
 	b.ResponseSuccess("", "")
 
