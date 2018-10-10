@@ -23,7 +23,7 @@ type XSuser struct {
 
 type XSpurchaseDetail struct {
 	Currency string `json:"currency"`
-	Amount   string `json:"amount"`
+	Amount   int    `json:"amount"`
 }
 
 type XSpurchase struct {
