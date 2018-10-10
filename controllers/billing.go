@@ -104,7 +104,7 @@ func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
 
 	signature := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
-	xsollaData.Signature = signature
+	xsollaData.Signature = strings.Replace(signature, "Signature ", "", -1)
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
 	err := json.Unmarshal(body, &xsollaData)
