@@ -99,7 +99,8 @@ func (b *BillingController) GetPaymentToken() {
 // ...
 func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
-	fmt.Println("before unmarshall: ", string(b.Ctx.Input.RequestBody[:]))
+	fmt.Println("before  1: ", string(b.Ctx.Input.RequestBody))
+	fmt.Println("before  2: ", string(b.Ctx.Input.RequestBody[:]))
 
 	err := json.Unmarshal(b.Ctx.Input.RequestBody, &xsollaData)
 	if err != nil {
