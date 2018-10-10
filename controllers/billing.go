@@ -102,7 +102,7 @@ func (b *BillingController) GetPaymentToken() {
 func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
 
-	signature := b.Ctx.Request.Header.Get("Authorization Signature ")
+	signature := b.Ctx.Request.Header.Get("Authorization ")
 	xsollaData.Signature = signature
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
