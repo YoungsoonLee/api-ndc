@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -154,10 +155,46 @@ func (b *BillingController) CallbackXsolla() {
 
 	// check notification_type == "payment"
 	if xsollaData.NotificationType == "payment" {
+		// check payment try
+		var pt models.PaymentTry
+		pt.PxID = xsollaData.Transaction.ExternalID
+		pt.UID, _ = strconv.ParseInt(xsollaData.User.ID, 10, 64)
+		pt.Amount = xsollaData.Purchase.Total.Amount
+		pt, exists := models.CheckPaymentTry(pt)
+		if !exists {
+			b.XsollaResponseError(libs.ErrXInvalidPaytryData)
+		}
+
+		// make charge data
+		var c models.PaymentTransaction
+		c.PxID = xsollaData.Transaction.ExternalID
+		c.TxID = strconv.Itoa(xsollaData.Transaction.ID)
+		c.UID, _ = strconv.ParseInt(xsollaData.User.ID, 10, 64)
+		c.ItemID = pt.ItemID
+		c.ItemName = pt.ItemName
+		c.PgID = pt.PgID
+		c.Currency = pt.Currency
+		c.Price = pt.Price
+		c.Amount = pt.Amount
+
+		beego.Info("charge data: ", c)
+
+		// begin tran
+		err := models.AddPaymentTransaction(c)
+		if err != nil {
+			beego.Error("Charge error: ", err)
+			b.XsollaResponseError(libs.ErrXMakePaytransaction)
+		}
+
+		//set redis?
+
+		//success
+		b.ResponseSuccess("", "")
 
 	}
 
 	// invalid paytry data
+	b.XsollaResponseError(libs.ErrXInvalidNotiType)
 
 	/*
 		fmt.Println("xsollaData.Signature: ", xsollaData.Signature)
@@ -173,7 +210,4 @@ func (b *BillingController) CallbackXsolla() {
 		fmt.Println("xsollaData.User.Phone: ", xsollaData.User.Phone)
 		fmt.Println("xsollaData.User.Country: ", xsollaData.User.Country)
 	*/
-
-	b.ResponseSuccess("", "")
-
 }

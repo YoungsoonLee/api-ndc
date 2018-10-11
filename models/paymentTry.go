@@ -26,6 +26,7 @@ type PaymentTry struct {
 	PxID     string    `orm:"column(PxID);size(500);pk" json:"pxid"`       // unique, payment transaction id
 	UID      int64     `orm:"column(UID);" json:"uid"`                     // user id
 	ItemID   int       `orm:"column(ItemID);" json:"itemid"`               // itemid
+	ItemName string    `orm:"size(1000);" json:"item_name"`                // not null,
 	PgID     int       `orm:"column(PgID);" json:"pgid"`                   // pgid
 	Currency string    `orm:"size(3);default(USD)" json:"currency"`        // not null, default 'USD'
 	Price    int       `json:"price"`                                      // not null,
@@ -73,4 +74,15 @@ func AddPaymentTry(pt PaymentTry) (PaymentTry, error) {
 	//fmt.Println(pt)
 
 	return pt, nil
+}
+
+func CheckPaymentTry(pt PaymentTry) (PaymentTry, bool) {
+	o := orm.NewOrm()
+	err := o.QueryTable("PaymentTry").Filter("PxID", pt.PxID).Filter("UID", pt.UID).Filter("Amount", pt.Amount).One(&pt)
+	if err == orm.ErrMultiRows || err == orm.ErrNoRows {
+		return PaymentTry{}, false
+	}
+
+	return pt, true
+
 }

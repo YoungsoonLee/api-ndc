@@ -57,8 +57,11 @@ var (
 	ErrMakeToken     = &ControllerError{500, "90005", "Generate Token error"}
 
 	// xsolla
-	ErrXNilSig      = &ControllerError{400, "INVALID_SIGNATURE_SIGNATURE_NULL", "INVALID_SIGNATURE_SIGNATURE_NULL"}
-	ErrXInvalidSig  = &ControllerError{400, "INVALID_SIGNATURE", "INVALID_SIGNATURE"}
-	ErrXInvalidUser = &ControllerError{400, "INVALID_USER", "INVALID_USER"}
-	ErrXInvalidJSON = &ControllerError{400, "JSON_PARSING_ERROR", "JSON_PARSING_ERROR"}
+	ErrXNilSig             = &ControllerError{400, "INVALID_SIGNATURE_SIGNATURE_NULL", "INVALID_SIGNATURE_SIGNATURE_NULL"}
+	ErrXInvalidSig         = &ControllerError{400, "INVALID_SIGNATURE", "INVALID_SIGNATURE"}
+	ErrXInvalidUser        = &ControllerError{400, "INVALID_USER", "INVALID_USER"}
+	ErrXInvalidJSON        = &ControllerError{400, "JSON_PARSING_ERROR", "JSON_PARSING_ERROR"}
+	ErrXInvalidPaytryData  = &ControllerError{400, "INVALID_PAYTRY_DATA", "INVALID_PAYTRY_DATA"}
+	ErrXMakePaytransaction = &ControllerError{400, "ERROR_MAKE_PAYTRANSACTION", "ERROR_MAKE_PAYTRANSACTION"}
+	ErrXInvalidNotiType    = &ControllerError{400, "INVALID_NOTI_TYPE", "INVALID_NOTI_TYPE"}
 )
