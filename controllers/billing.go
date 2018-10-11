@@ -191,10 +191,10 @@ func (b *BillingController) CallbackXsolla() {
 		//success
 		b.ResponseSuccess("", "")
 
+	} else {
+		// invalid paytry data
+		b.XsollaResponseError(libs.ErrXInvalidNotiType)
 	}
-
-	// invalid paytry data
-	b.XsollaResponseError(libs.ErrXInvalidNotiType)
 
 	/*
 		fmt.Println("xsollaData.Signature: ", xsollaData.Signature)

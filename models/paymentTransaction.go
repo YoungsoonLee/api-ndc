@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"github.com/astaxie/beego"
+
 	"github.com/astaxie/beego/orm"
 )
 
@@ -41,17 +43,25 @@ func AddPaymentTransaction(c PaymentTransaction) error {
 	o := orm.NewOrm()
 	err := o.Begin()
 
-	_, err = o.Insert(&c)
+	//_, err = o.Insert(&c)
+	sql := "INSERT INTO Payment_transaction " +
+		"(\"PxID\", \"TxID\", \"UID\", \"ItemID\", Item_name, \"PgID\", Currency, Price, Amount, Transaction_at, Amount_After_Used) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
+
+	_, err = o.Raw(sql, c.PxID, c.TxID, c.UID, c.ItemID, c.ItemName, c.PgID, c.Currency, c.Price, c.Amount, c.TransactionAt, c.Amount).Exec()
 	if err != nil {
-		err = o.Rollback()
+		beego.Error("AddPaymentTransaction: ", err)
+		_ = o.Rollback()
 		return err
 	}
 
-	var wallet Wallet
-	sql := "UPDATE wallet set balance = sum(balance) + ? WHERE \"UID\" = ?"
-	err = o.Raw(sql, c.Amount, c.UID).QueryRow(&wallet)
+	sql = "UPDATE \"wallet\" SET balance = balance + ? WHERE \"UID\" = ?"
+	_, err = o.Raw(sql, c.Amount, c.UID).Exec()
+
 	if err != nil {
-		err = o.Rollback()
+		beego.Error("AddPaymentTransaction update wallet: ", err)
+		_ = o.Rollback()
+		return err
 	}
 
 	err = o.Commit()
