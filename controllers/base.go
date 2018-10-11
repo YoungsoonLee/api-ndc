@@ -38,6 +38,26 @@ func (b *BaseController) ResponseError(e *libs.ControllerError, err error) {
 	b.StopRun()
 }
 
+func (b *BaseController) XsollaResponseError(e *libs.ControllerError) {
+	// TODO: logging
+	beego.Error(b.Ctx.Request.RequestURI, e.Message)
+
+	eData := models.XRespDetailCode{
+		Code:    e.Code,
+		Message: e.Message,
+	}
+
+	response := &models.XRespCode{
+		Error: eData,
+	}
+
+	b.Ctx.Output.Status = e.Status
+	b.Ctx.Output.JSON(response, true, true)
+
+	// TODO: logging
+	b.StopRun()
+}
+
 // ValidDisplayname ...
 func (b *BaseController) ValidDisplayname(displayname string) {
 

@@ -1,11 +1,15 @@
 package controllers
 
 import (
+	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/astaxie/beego"
 
 	"github.com/YoungsoonLee/api-ndc/libs"
 	"github.com/YoungsoonLee/api-ndc/models"
@@ -17,9 +21,11 @@ type BillingController struct {
 
 // Xsolla struct
 type XSuser struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Ip    string `json:"ip"`
+	ID      string `json:"id"`
+	Email   string `json:"email"`
+	Ip      string `json:"ip"`
+	Phone   string `json:"phone"`
+	Country string `json:"country"`
 }
 
 type XSpurchaseDetail struct {
@@ -104,25 +110,69 @@ func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
 
 	signature := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
-	xsollaData.Signature = strings.Replace(signature, "Signature ", "", -1)
-
-	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	err := json.Unmarshal(body, &xsollaData)
-	if err != nil {
-		b.ResponseError(libs.ErrJSONUnmarshal, err)
+	signature = strings.Replace(signature, "Signature ", "", -1)
+	if signature == "" {
+		b.XsollaResponseError(libs.ErrXNilSig)
 	}
 
-	fmt.Println("xsollaData.Signature: ", xsollaData.Signature)
-	fmt.Println("xsollaData.NotificationType: ", xsollaData.NotificationType)
-	fmt.Println("xsollaData.Purchase.Total.Amount: ", xsollaData.Purchase.Total.Amount)
-	fmt.Println("xsollaData.Purchase.Total.Currency: ", xsollaData.Purchase.Total.Currency)
-	fmt.Println("xsollaData.Signature: ", xsollaData.Signature)
-	fmt.Println("xsollaData.Transaction.ExternalID: ", xsollaData.Transaction.ExternalID)
-	fmt.Println("xsollaData.Transaction.ID: ", xsollaData.Transaction.ID)
-	fmt.Println("xsollaData.Transaction.PaymentDate: ", xsollaData.Transaction.PaymentDate)
-	fmt.Println("xsollaData.User.ID: ", xsollaData.User.ID)
-	fmt.Println("xsollaData.User.Email: ", xsollaData.User.Email)
-	fmt.Println("xsollaData.User.Ip: ", xsollaData.User.Ip)
+	xsollaData.Signature = signature
+
+	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
+	if body == nil {
+		body = b.Ctx.Input.RequestBody // for local test
+	}
+
+	err := json.Unmarshal(body, &xsollaData)
+	if err != nil {
+		//b.ResponseError(libs.ErrJSONUnmarshal, err)
+		b.XsollaResponseError(libs.ErrXInvalidJSON)
+	}
+
+	beego.Info("xsollaData: ", xsollaData)
+
+	// hashed
+	h := sha1.New()
+	hBody := string(body) + os.Getenv("XSOLLA_SECRET_KEY")
+	h.Write([]byte(hBody))
+	hashedData := fmt.Sprintf("%x", h.Sum(nil))
+
+	if hashedData != xsollaData.Signature {
+		beego.Error(hashedData, xsollaData.Signature)
+		b.XsollaResponseError(libs.ErrXInvalidSig)
+	}
+
+	// check user
+	_, err = models.FindByID(xsollaData.User.ID)
+	if err != nil {
+		b.XsollaResponseError(libs.ErrXInvalidUser)
+	}
+
+	// check notification_type == "user_validation"
+	if xsollaData.NotificationType == "user_validation" {
+		b.ResponseSuccess("", "") //success
+	}
+
+	// check notification_type == "payment"
+	if xsollaData.NotificationType == "payment" {
+
+	}
+
+	// invalid paytry data
+
+	/*
+		fmt.Println("xsollaData.Signature: ", xsollaData.Signature)
+		fmt.Println("xsollaData.NotificationType: ", xsollaData.NotificationType)
+		fmt.Println("xsollaData.Purchase.Total.Amount: ", xsollaData.Purchase.Total.Amount)
+		fmt.Println("xsollaData.Purchase.Total.Currency: ", xsollaData.Purchase.Total.Currency)
+		fmt.Println("xsollaData.Transaction.ExternalID: ", xsollaData.Transaction.ExternalID)
+		fmt.Println("xsollaData.Transaction.ID: ", xsollaData.Transaction.ID)
+		fmt.Println("xsollaData.Transaction.PaymentDate: ", xsollaData.Transaction.PaymentDate)
+		fmt.Println("xsollaData.User.ID: ", xsollaData.User.ID)
+		fmt.Println("xsollaData.User.Email: ", xsollaData.User.Email)
+		fmt.Println("xsollaData.User.Ip: ", xsollaData.User.Ip)
+		fmt.Println("xsollaData.User.Phone: ", xsollaData.User.Phone)
+		fmt.Println("xsollaData.User.Country: ", xsollaData.User.Country)
+	*/
 
 	b.ResponseSuccess("", "")
 

@@ -55,4 +55,10 @@ var (
 	ErrFailSalt      = &ControllerError{500, "90003", "Generate error"}
 	ErrFailHash      = &ControllerError{500, "90004", "Generate Hash error"}
 	ErrMakeToken     = &ControllerError{500, "90005", "Generate Token error"}
+
+	// xsolla
+	ErrXNilSig      = &ControllerError{400, "INVALID_SIGNATURE_SIGNATURE_NULL", "INVALID_SIGNATURE_SIGNATURE_NULL"}
+	ErrXInvalidSig  = &ControllerError{400, "INVALID_SIGNATURE", "INVALID_SIGNATURE"}
+	ErrXInvalidUser = &ControllerError{400, "INVALID_USER", "INVALID_USER"}
+	ErrXInvalidJSON = &ControllerError{400, "JSON_PARSING_ERROR", "JSON_PARSING_ERROR"}
 )
