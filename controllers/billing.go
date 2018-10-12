@@ -186,7 +186,8 @@ func (b *BillingController) CallbackXsolla() {
 			b.XsollaResponseError(libs.ErrXMakePaytransaction)
 		}
 
-		//set redis?
+		// set redis?
+		// use ??
 
 		//success
 		b.ResponseSuccess("", "")
