@@ -82,7 +82,10 @@ func (b *BillingController) GetChargeItems() {
 func (b *BillingController) GetPaymentToken() {
 	//
 	var pt models.PaymentTry
-	err := json.Unmarshal(b.Ctx.Input.RequestBody, &pt)
+
+	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
+	//err := json.Unmarshal(b.Ctx.Input.RequestBody, &pt)
+	err := json.Unmarshal(body, &pt)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
