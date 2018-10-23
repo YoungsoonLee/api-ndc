@@ -92,12 +92,24 @@ func (b *BillingController) GetPaymentToken() {
 
 	// validation param
 
+	// insert payment try
 	pt, err = models.AddPaymentTry(pt)
 	if err != nil {
 		b.ResponseError(libs.ErrDatabase, err)
 	}
 
-	//fmt.Println(pt)
+	url := os.Getenv("XSOLLA_ENDPOINT") + os.Getenv("XSOLLA_MERCHANT_ID") + "/token"
+
+	// make json send data for getting token
+	var sendDataToGetToken libs.XsollaSendJSONToGetToken
+	sendDataToGetToken.User.ID.Value = pt.UID
+	sendDataToGetToken.User.ID.Hidden = true
+	sendDataToGetToken.User.Email.Value = "" // TODO: ???
+	sendDataToGetToken.User.Email.AllowModify = false
+	sendDataToGetToken.User.Email.Hidden = true
+	sendDataToGetToken.User.Country.Value = "US"
+	sendDataToGetToken.User.Name.Value = "" // TODO: ??? nickname
+	sendDataToGetToken.User.Name.Hidden = false
 
 	b.ResponseSuccess("", pt)
 
