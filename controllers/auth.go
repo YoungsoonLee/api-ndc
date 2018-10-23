@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"strings"
 	"time"
 
@@ -118,7 +119,16 @@ func (c *AuthController) CreateUser() {
 // @router /login [post]
 func (c *AuthController) Login() {
 	var user models.User
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
+
+	body, _ := ioutil.ReadAll(c.Ctx.Request.Body)
+	/*
+		if body == nil {
+			body = c.Ctx.Input.RequestBody // for local test
+		}
+	*/
+
+	//err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
+	err := json.Unmarshal(body, &user)
 	if err != nil {
 		c.ResponseError(libs.ErrJSONUnmarshal, err)
 	}

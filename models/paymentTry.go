@@ -45,7 +45,7 @@ func AddPaymentTry(pt PaymentTry) (PaymentTry, error) {
 	}
 
 	// set PgID, Currency, Price, Amount through paymentItem
-	sql := "SELECT \"ItemID\", \"PgID\", Currency, Price, Amount FROM Payment_Item WHERE \"ItemID\" = ?"
+	sql := "SELECT \"ItemID\", \"PgID\", Item_name, Currency, Price, Amount FROM Payment_Item WHERE \"ItemID\" = ?"
 	err := o.Raw(sql, pt.ItemID).QueryRow(&pt)
 	if err != nil {
 		return PaymentTry{}, err
@@ -57,10 +57,10 @@ func AddPaymentTry(pt PaymentTry) (PaymentTry, error) {
 	pt.PxID = "Px" + strconv.FormatInt(time.Now().UnixNano(), 10)
 
 	sql = "INSERT INTO payment_try" +
-		" (\"PxID\", \"UID\", \"ItemID\", \"PgID\", Currency, Price, Amount, Tried_At)" +
-		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
+		" (\"PxID\", \"UID\", \"ItemID\", \"PgID\", Item_name, Currency, Price, Amount, Tried_At)" +
+		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 
-	_, err = o.Raw(sql, pt.PxID, pt.UID, pt.ItemID, pt.PgID, pt.Currency, pt.Price, pt.Amount, time.Now()).Exec()
+	_, err = o.Raw(sql, pt.PxID, pt.UID, pt.ItemID, pt.PgID, pt.ItemName, pt.Currency, pt.Price, pt.Amount, time.Now()).Exec()
 	if err != nil {
 		return PaymentTry{}, err
 	}
