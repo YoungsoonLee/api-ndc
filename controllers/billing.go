@@ -84,10 +84,6 @@ func (b *BillingController) GetPaymentToken() {
 	var pt models.PaymentTry
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	if body == nil {
-		body = b.Ctx.Input.RequestBody // for local test
-	}
-
 	//err := json.Unmarshal(b.Ctx.Input.RequestBody, &pt)
 	err := json.Unmarshal(body, &pt)
 	if err != nil {
