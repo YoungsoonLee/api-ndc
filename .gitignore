@@ -13,5 +13,5 @@
 
 # conf/
 lastupdate.tmp
-.env
+# .env
 api-ndc
