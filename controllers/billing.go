@@ -93,7 +93,7 @@ func (b *BillingController) GetPaymentToken() {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
 
-	// validation param
+	// validation param uid, itemid
 
 	// insert payment try
 	pt, err = models.AddPaymentTry(pt)
@@ -102,7 +102,7 @@ func (b *BillingController) GetPaymentToken() {
 	}
 
 	url := os.Getenv("XSOLLA_ENDPOINT") + os.Getenv("XSOLLA_MERCHANT_ID") + "/token"
-	// beego.Info("url: ", url)
+	beego.Info("url: ", url)
 
 	// make json send data for getting token
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
