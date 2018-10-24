@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -143,11 +144,11 @@ func (b *BillingController) GetPaymentToken() {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
 
-	setHeaderKey := "Basic " + os.Getenv("XSOLLA_API_KEY")
-	// beego.Info("setHeaderKey: ", setHeaderKey)
+	encoded := base64.StdEncoding.EncodeToString([]byte(os.Getenv("XSOLLA_API_KEY")))
+	setHeaderKey := "Basic " + encoded
+	beego.Info("setHeaderKey: ", setHeaderKey)
 
 	req.Header.Add("Authorization", setHeaderKey)
-
 	beego.Info("header: ", req.Header)
 
 	client := &http.Client{}
