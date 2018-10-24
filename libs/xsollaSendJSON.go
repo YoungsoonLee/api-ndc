@@ -46,7 +46,7 @@ type Checkout struct {
 }
 
 type Description struct {
-	value string `json:"value"`
+	Value string `json:"value"`
 }
 
 type Purchase struct {

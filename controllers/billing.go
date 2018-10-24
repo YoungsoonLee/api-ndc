@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -110,6 +112,45 @@ func (b *BillingController) GetPaymentToken() {
 	sendDataToGetToken.User.Country.Value = "US"
 	sendDataToGetToken.User.Name.Value = "" // TODO: ??? nickname
 	sendDataToGetToken.User.Name.Hidden = false
+
+	sendDataToGetToken.Settings.ProjectID = 24380
+	sendDataToGetToken.Settings.ExternalID = pt.PxID
+	sendDataToGetToken.Settings.Mode = pt.Mode
+	sendDataToGetToken.Settings.Language = "en"
+	sendDataToGetToken.Settings.Currency = "USD"
+	sendDataToGetToken.Settings.UI.Size = "medium"
+
+	sendDataToGetToken.Purchase.Checkout.Currency = "USD"
+	sendDataToGetToken.Purchase.Checkout.Amount = pt.Price // price
+	sendDataToGetToken.Purchase.Description.Value = pt.ItemName
+
+	sendDataToGetToken.CustomParameters.Pid = pt.PxID
+
+	jsonStr, err := json.Marshal(sendDataToGetToken)
+	if err != nil {
+		beego.Error("marshall error: ", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		beego.Error("NewRequest error: ", err)
+	}
+
+	req.Header.Set("Content-Type", "application.json")
+
+	setHeaderKey := "Basic " + os.Getenv("XSOLLA_API_KEY")
+	req.Header.Set("Authorization", setHeaderKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		beego.Error("client error: ", err)
+	}
+
+	fmt.Println("response status: ", resp.Status)
+	fmt.Println("response header: ", resp.Header)
+	body, _ = ioutil.ReadAll(resp.Body)
+	fmt.Println("response body: ", body)
 
 	b.ResponseSuccess("", pt)
 
