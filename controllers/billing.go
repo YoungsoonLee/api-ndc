@@ -133,7 +133,7 @@ func (b *BillingController) GetPaymentToken() {
 	}
 
 	fmt.Println(sendDataToGetToken)
-	fmt.Println(jsonStr)
+	fmt.Println(string(jsonStr))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
