@@ -146,7 +146,7 @@ func (b *BillingController) GetPaymentToken() {
 
 	encoded := base64.StdEncoding.EncodeToString([]byte(os.Getenv("XSOLLA_API_KEY")))
 	setHeaderKey := "Basic " + encoded
-	beego.Info("setHeaderKey: ", setHeaderKey)
+	beego.Info("setHeaderKey: ", setHeaderKey, os.Getenv("XSOLLA_API_KEY"))
 
 	req.Header.Add("Authorization", setHeaderKey)
 	beego.Info("header: ", req.Header)
