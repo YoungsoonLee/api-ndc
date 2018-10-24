@@ -133,7 +133,7 @@ func (b *BillingController) GetPaymentToken() {
 		beego.Error("marshall error: ", err)
 	}
 
-	fmt.Println(sendDataToGetToken)
+	// fmt.Println(sendDataToGetToken)
 	fmt.Println(string(jsonStr))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
