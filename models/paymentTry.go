@@ -3,11 +3,11 @@ package models
 import (
 	"crypto/rand"
 	"errors"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/YoungsoonLee/api-ndc/libs"
-	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -65,13 +65,14 @@ func AddPaymentTry(pt PaymentTry) (PaymentTry, error) {
 		return PaymentTry{}, err
 	}
 
-	if beego.BConfig.RunMode == "dev" {
-		pt.Mode = "sandbox"
-	} else {
-		pt.Mode = "production"
-	}
-
-	//fmt.Println(pt)
+	/*
+		if beego.BConfig.RunMode == "dev" {
+			pt.Mode = "sandbox"
+		} else {
+			pt.Mode = "production"
+		}
+	*/
+	pt.Mode = os.Getenv("XSOLLA_MODE")
 
 	return pt, nil
 }

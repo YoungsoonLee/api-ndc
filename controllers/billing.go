@@ -250,8 +250,6 @@ func (b *BillingController) CallbackXsolla() {
 		}
 
 		// set redis?
-		// use ??
-		//
 
 		//success
 		b.ResponseSuccess("", "")
