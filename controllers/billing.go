@@ -140,13 +140,13 @@ func (b *BillingController) GetPaymentToken() {
 		beego.Error("NewRequest error: ", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
 
 	setHeaderKey := "Basic " + os.Getenv("XSOLLA_API_KEY")
 	// beego.Info("setHeaderKey: ", setHeaderKey)
 
-	req.Header.Set("Authorization", setHeaderKey)
+	req.Header.Add("Authorization", setHeaderKey)
 
 	beego.Info("header: ", req.Header)
 
