@@ -148,6 +148,8 @@ func (b *BillingController) GetPaymentToken() {
 
 	req.Header.Set("Authorization", setHeaderKey)
 
+	beego.Info("header: ", req.Header)
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
