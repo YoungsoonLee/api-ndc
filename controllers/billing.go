@@ -101,6 +101,7 @@ func (b *BillingController) GetPaymentToken() {
 	}
 
 	url := os.Getenv("XSOLLA_ENDPOINT") + os.Getenv("XSOLLA_MERCHANT_ID") + "/token"
+	beego.Info("url: ", url)
 
 	// make json send data for getting token
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
@@ -139,6 +140,8 @@ func (b *BillingController) GetPaymentToken() {
 	req.Header.Set("Content-Type", "application.json")
 
 	setHeaderKey := "Basic " + os.Getenv("XSOLLA_API_KEY")
+	beego.Info("setHeaderKey: ", setHeaderKey)
+
 	req.Header.Set("Authorization", setHeaderKey)
 
 	client := &http.Client{}
