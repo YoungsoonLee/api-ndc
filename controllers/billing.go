@@ -87,13 +87,12 @@ func (b *BillingController) GetPaymentToken() {
 	var pt models.PaymentTry
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	//err := json.Unmarshal(b.Ctx.Input.RequestBody, &pt)
 	err := json.Unmarshal(body, &pt)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
 
-	// validation param uid, itemid
+	// TODO: validation param uid, itemid
 
 	// insert payment try
 	pt, err = models.AddPaymentTry(pt)
@@ -102,7 +101,7 @@ func (b *BillingController) GetPaymentToken() {
 	}
 
 	url := os.Getenv("XSOLLA_ENDPOINT") + os.Getenv("XSOLLA_MERCHANT_ID") + "/token"
-	beego.Info("url: ", url)
+	// beego.Info("url: ", url)
 
 	// make json send data for getting token
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
@@ -130,37 +129,43 @@ func (b *BillingController) GetPaymentToken() {
 
 	jsonStr, err := json.Marshal(sendDataToGetToken)
 	if err != nil {
-		beego.Error("marshall error: ", err)
+		beego.Error("sendDataToGetToken marshall error: ", err)
+		//TODO: error return
 	}
-
-	// fmt.Println(sendDataToGetToken)
-	// fmt.Println(string(jsonStr))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
-		beego.Error("NewRequest error: ", err)
+		beego.Error("getToekn Request error: ", err)
+		//TODO: error return
 	}
 
 	key := os.Getenv("XSOLLA_MERCHANT_ID") + ":" + os.Getenv("XSOLLA_API_KEY")
 	encoded := base64.StdEncoding.EncodeToString([]byte(key))
 	setHeaderKey := "Basic " + encoded
-	beego.Info("setHeaderKey: ", setHeaderKey, os.Getenv("XSOLLA_API_KEY"))
+	// beego.Info("setHeaderKey: ", setHeaderKey, os.Getenv("XSOLLA_API_KEY"))
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Authorization", setHeaderKey)
-	beego.Info("header: ", req.Header)
+	// beego.Info("header: ", req.Header)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		beego.Error("client error: ", err)
+		//TODO: error return
 	}
 
-	fmt.Println("response status: ", resp.Status)
-	fmt.Println("response header: ", resp.Header)
 	body, _ = ioutil.ReadAll(resp.Body)
-	fmt.Println("response body: ", string(body))
+	err = json.Unmarshal(body, &pt)
+	if err != nil {
+		beego.Error("get token unmarshall error: ", err)
+		b.XsollaResponseError(libs.ErrXInvalidJSON)
+	}
+
+	beego.Info("token: ", pt.Token)
+
+	// TODO: check token is nil
 
 	b.ResponseSuccess("", pt)
 

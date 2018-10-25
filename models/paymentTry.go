@@ -33,6 +33,7 @@ type PaymentTry struct {
 	Amount   int       `json:"amount"`                                     // not null, 실제 적립되는 cyber coin 양
 	TriedAt  time.Time `orm:"type(datetime);auto_now_add" json:"tried_at"` // first save
 	Mode     string    `orm:"-" json:"mode"`                               // xsolla mode
+	Token    string    `orm:"-" json:"token"`                              // xsolla token
 }
 
 // AddPaymentTry ...
