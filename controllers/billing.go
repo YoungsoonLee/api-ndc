@@ -108,11 +108,11 @@ func (b *BillingController) GetPaymentToken() {
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
 	sendDataToGetToken.User.ID.Value = strconv.FormatInt(pt.UID, 10)
 	sendDataToGetToken.User.ID.Hidden = true
-	sendDataToGetToken.User.Email.Value = "" // TODO: ???
+	sendDataToGetToken.User.Email.Value = "test" // TODO: ???
 	sendDataToGetToken.User.Email.AllowModify = false
 	sendDataToGetToken.User.Email.Hidden = true
 	sendDataToGetToken.User.Country.Value = "US"
-	sendDataToGetToken.User.Name.Value = "" // TODO: ??? nickname
+	sendDataToGetToken.User.Name.Value = "test" // TODO: ??? nickname
 	sendDataToGetToken.User.Name.Hidden = false
 
 	sendDataToGetToken.Settings.ProjectID = 24380
