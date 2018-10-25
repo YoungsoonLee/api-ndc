@@ -134,20 +134,20 @@ func (b *BillingController) GetPaymentToken() {
 	}
 
 	// fmt.Println(sendDataToGetToken)
-	fmt.Println(string(jsonStr))
+	// fmt.Println(string(jsonStr))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		beego.Error("NewRequest error: ", err)
 	}
 
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-
-	encoded := base64.StdEncoding.EncodeToString([]byte(os.Getenv("XSOLLA_API_KEY")))
+	key := os.Getenv("XSOLLA_MERCHANT_ID") + ":" + os.Getenv("XSOLLA_API_KEY")
+	encoded := base64.StdEncoding.EncodeToString([]byte(key))
 	setHeaderKey := "Basic " + encoded
 	beego.Info("setHeaderKey: ", setHeaderKey, os.Getenv("XSOLLA_API_KEY"))
 
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Authorization", setHeaderKey)
 	beego.Info("header: ", req.Header)
 
