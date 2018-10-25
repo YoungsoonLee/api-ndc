@@ -1,8 +1,8 @@
 package libs
 
 type ID struct {
-	Value  int64 `json:"value"`
-	Hidden bool  `json:"hidden"`
+	Value  string `json:"value"`
+	Hidden bool   `json:"hidden"`
 }
 
 type Email struct {
@@ -41,8 +41,8 @@ type Settings struct {
 }
 
 type Checkout struct {
-	Currency string `json:"currency"`
-	Amount   int    `json:"amount"`
+	Currency string  `json:"currency"`
+	Amount   float32 `json:"amount"` //float
 }
 
 type Description struct {

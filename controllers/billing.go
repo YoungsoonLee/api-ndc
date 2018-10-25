@@ -106,7 +106,7 @@ func (b *BillingController) GetPaymentToken() {
 
 	// make json send data for getting token
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
-	sendDataToGetToken.User.ID.Value = pt.UID
+	sendDataToGetToken.User.ID.Value = strconv.FormatInt(pt.UID, 10)
 	sendDataToGetToken.User.ID.Hidden = true
 	sendDataToGetToken.User.Email.Value = "" // TODO: ???
 	sendDataToGetToken.User.Email.AllowModify = false
@@ -123,7 +123,7 @@ func (b *BillingController) GetPaymentToken() {
 	sendDataToGetToken.Settings.UI.Size = "medium"
 
 	sendDataToGetToken.Purchase.Checkout.Currency = "USD"
-	sendDataToGetToken.Purchase.Checkout.Amount = pt.Price // price
+	sendDataToGetToken.Purchase.Checkout.Amount = float32(pt.Price) // price
 	sendDataToGetToken.Purchase.Description.Value = pt.ItemName
 
 	sendDataToGetToken.CustomParameters.Pid = pt.PxID
