@@ -253,6 +253,7 @@ func (b *BillingController) CallbackXsolla() {
 		c.Currency = pt.Currency
 		c.Price = pt.Price
 		c.Amount = pt.Amount
+		c.TransactionAt = xsollaData.Transaction.PaymentDate
 
 		beego.Info("charge data: ", c)
 
