@@ -93,6 +93,12 @@ func (b *BillingController) GetPaymentToken() {
 	}
 
 	// TODO: validation param uid, itemid
+	// check UID
+	var user models.UserFilter
+	user, err = models.FindByID(strconv.FormatInt(pt.UID, 10))
+	if err != nil {
+		b.ResponseError(libs.ErrNoUser, err)
+	}
 
 	// insert payment try
 	pt, err = models.AddPaymentTry(pt)
@@ -107,11 +113,11 @@ func (b *BillingController) GetPaymentToken() {
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
 	sendDataToGetToken.User.ID.Value = strconv.FormatInt(pt.UID, 10)
 	sendDataToGetToken.User.ID.Hidden = true
-	sendDataToGetToken.User.Email.Value = "test" // TODO: ???
+	sendDataToGetToken.User.Email.Value = user.Email // TODO: ???
 	sendDataToGetToken.User.Email.AllowModify = false
 	sendDataToGetToken.User.Email.Hidden = true
 	sendDataToGetToken.User.Country.Value = "US"
-	sendDataToGetToken.User.Name.Value = "test" // TODO: ??? nickname
+	sendDataToGetToken.User.Name.Value = user.Displayname // TODO: ??? nickname
 	sendDataToGetToken.User.Name.Hidden = false
 
 	sendDataToGetToken.Settings.ProjectID = 24380
