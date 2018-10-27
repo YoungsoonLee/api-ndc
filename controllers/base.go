@@ -145,6 +145,17 @@ func (b *BaseController) ResponseSuccess(key string, value interface{}) {
 		//b.StopRun()
 	}
 
+	if key == "tabulator" {
+		/*
+			tresponse := &models.MrespCode{
+				Data: value,
+			}
+		*/
+
+		b.Ctx.Output.JSON(value, true, true)
+		//b.StopRun()
+	}
+
 	response := &models.RespCode{
 		Code:    "ok",
 		Message: "success",

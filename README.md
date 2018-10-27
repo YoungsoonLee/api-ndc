@@ -34,3 +34,7 @@
 ###
     - 모든 ID 관련 변수는 대문자로 한다. 데이터베이스에는 ORM을 이용했기 때문에 i_d 형식으로 테이블이 만들어진다.
         - ex. UID => u_i_d
+
+### package command
+    govendor 
+    govendor add +external

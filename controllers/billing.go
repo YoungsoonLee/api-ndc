@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -165,7 +166,7 @@ func (b *BillingController) GetPaymentToken() {
 	err = json.Unmarshal(body, &pt)
 	if err != nil {
 		beego.Error("get token unmarshall error: ", err)
-		b.XsollaResponseError(libs.ErrJSONUnmarshal)
+		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
 
 	beego.Info("token: ", pt.Token)
@@ -178,7 +179,21 @@ func (b *BillingController) GetPaymentToken() {
 
 // GetChargeHistory ..
 func (b *BillingController) GetChargeHistory() {
+	UID := b.GetString(":UID")
+	// TODO: validation.
+	if UID == "" {
+		err := errors.New("UID is nil")
+		b.ResponseError(libs.ErrInputData, err)
+	}
+	iUID, _ := strconv.ParseInt(UID, 10, 64)
+	paytransacsion, err := models.GetPayTransacyion(iUID)
+	if err != nil {
+		b.ResponseError(libs.ErrDatabase, err)
+	}
 
+	//fmt.Println(paytransacsion)
+
+	b.ResponseSuccess("tabulator", paytransacsion)
 }
 
 // CallbackXsolla ...
@@ -203,7 +218,6 @@ func (b *BillingController) CallbackXsolla() {
 
 	err := json.Unmarshal(body, &xsollaData)
 	if err != nil {
-		//b.ResponseError(libs.ErrJSONUnmarshal, err)
 		b.XsollaResponseError(libs.ErrXInvalidJSON)
 	}
 

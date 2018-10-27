@@ -41,7 +41,7 @@ func init() {
 			beego.NSRouter("/getPaymentToken", &controllers.BillingController{}, "post:GetPaymentToken"),
 			beego.NSRouter("/callbackXsolla", &controllers.BillingController{}, "post:CallbackXsolla"),
 			//getChargeHistory
-			beego.NSRouter("/getChargeHistory", &controllers.BillingController{}, "post:GetChargeHistory"),
+			beego.NSRouter("/getChargeHistory/:UID", &controllers.BillingController{}, "post:GetChargeHistory"),
 		),
 
 		//adimn

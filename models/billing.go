@@ -18,3 +18,21 @@ func GetChargeItems() ([]PaymentItem, error) {
 
 	return chargeItems, nil
 }
+
+func GetPayTransacyion(UID int64) ([]PaymentTransaction, error) {
+	var payTransactions []PaymentTransaction
+
+	o := orm.NewOrm()
+	sql := "SELECT " +
+		" \"PxID\" , " +
+		" \"TxID\", " +
+		" Item_Name, " +
+		" Price, " +
+		" Amount, " +
+		" Transaction_At" +
+		" FROM \"payment_transaction\" " +
+		" WHERE \"UID\" = ? " +
+		" ORDER BY Transaction_At desc "
+	_, err := o.Raw(sql, UID).QueryRows(&payTransactions)
+	return payTransactions, err
+}

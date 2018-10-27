@@ -63,6 +63,12 @@
 			"revisionTime": "2018-10-05T13:16:18Z"
 		},
 		{
+			"checksumSHA1": "dXvvTC4ePe3mebX2nOoJcLKJwnc=",
+			"path": "github.com/astaxie/beego/plugins/cors",
+			"revision": "5b8e468a138596a4d5c39b5095e5cf3ab74675d1",
+			"revisionTime": "2018-10-05T13:16:18Z"
+		},
+		{
 			"checksumSHA1": "EDaMYv6yHO6Xu9J8loeGIUOvGoE=",
 			"path": "github.com/astaxie/beego/session",
 			"revision": "5b8e468a138596a4d5c39b5095e5cf3ab74675d1",

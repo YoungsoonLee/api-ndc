@@ -73,7 +73,14 @@ func (c *AuthController) CheckDisplayName() {
 // @router /CreateUser [post]
 func (c *AuthController) CreateUser() {
 	var user models.User
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
+	/*
+		err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
+		if err != nil {
+			c.ResponseError(libs.ErrJSONUnmarshal, err)
+		}
+	*/
+	body, _ := ioutil.ReadAll(c.Ctx.Request.Body)
+	err := json.Unmarshal(body, &user)
 	if err != nil {
 		c.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
@@ -198,14 +205,20 @@ func (c *AuthController) CheckLogin() {
 // @router /Social [post]
 func (c *AuthController) Social() {
 	var social Social
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, &social)
+	/*
+		err := json.Unmarshal(c.Ctx.Input.RequestBody, &social)
+		if err != nil {
+			c.ResponseError(libs.ErrJSONUnmarshal, err)
+		}
+	*/
+	body, _ := ioutil.ReadAll(c.Ctx.Request.Body)
+	err := json.Unmarshal(body, &social)
 	if err != nil {
 		c.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
 
 	// TODO: validation
 	// unless provier is null or accessToken is null, get error
-	//fmt.Println(social)
 
 	var user models.User
 	user, err = models.FindByEmail(social.Email)
