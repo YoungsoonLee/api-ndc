@@ -113,11 +113,11 @@ func (b *BillingController) GetPaymentToken() {
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
 	sendDataToGetToken.User.ID.Value = strconv.FormatInt(pt.UID, 10)
 	sendDataToGetToken.User.ID.Hidden = true
-	sendDataToGetToken.User.Email.Value = user.Email // TODO: ???
+	sendDataToGetToken.User.Email.Value = user.Email
 	sendDataToGetToken.User.Email.AllowModify = false
 	sendDataToGetToken.User.Email.Hidden = true
 	sendDataToGetToken.User.Country.Value = "US"
-	sendDataToGetToken.User.Name.Value = user.Displayname // TODO: ??? nickname
+	sendDataToGetToken.User.Name.Value = user.Displayname
 	sendDataToGetToken.User.Name.Hidden = false
 
 	sendDataToGetToken.Settings.ProjectID = 24380
@@ -136,13 +136,13 @@ func (b *BillingController) GetPaymentToken() {
 	jsonStr, err := json.Marshal(sendDataToGetToken)
 	if err != nil {
 		beego.Error("sendDataToGetToken marshall error: ", err)
-		//TODO: error return
+		b.ResponseError(libs.ErrJSONmarshal, err)
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		beego.Error("getToekn Request error: ", err)
-		//TODO: error return
+		b.ResponseError(libs.ErrTokenRequest, err)
 	}
 
 	key := os.Getenv("XSOLLA_MERCHANT_ID") + ":" + os.Getenv("XSOLLA_API_KEY")
@@ -153,20 +153,19 @@ func (b *BillingController) GetPaymentToken() {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Authorization", setHeaderKey)
-	// beego.Info("header: ", req.Header)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		beego.Error("client error: ", err)
-		//TODO: error return
+		b.ResponseError(libs.ErrClient, err)
 	}
 
 	body, _ = ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(body, &pt)
 	if err != nil {
 		beego.Error("get token unmarshall error: ", err)
-		b.XsollaResponseError(libs.ErrXInvalidJSON)
+		b.XsollaResponseError(libs.ErrJSONUnmarshal)
 	}
 
 	beego.Info("token: ", pt.Token)
@@ -177,13 +176,15 @@ func (b *BillingController) GetPaymentToken() {
 
 }
 
+// GetChargeHistory ..
+func (b *BillingController) GetChargeHistory() {
+
+}
+
 // CallbackXsolla ...
 // @Title Get xsolla callback data
 // @Description xsolla send callbac data
-// ...
-// ...
-// ...
-// ...
+//
 func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
 
