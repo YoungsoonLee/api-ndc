@@ -4,7 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-// AddPaymentItem ...
+// GetChargeItems ...
 // TODO: you need pgid ???
 func GetChargeItems() ([]PaymentItem, error) {
 	var chargeItems []PaymentItem
@@ -19,6 +19,7 @@ func GetChargeItems() ([]PaymentItem, error) {
 	return chargeItems, nil
 }
 
+// GetPayTransacyion ...
 func GetPayTransacyion(UID int64) ([]PaymentTransaction, error) {
 	var payTransactions []PaymentTransaction
 
