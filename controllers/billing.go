@@ -196,6 +196,12 @@ func (b *BillingController) GetChargeHistory() {
 	b.ResponseSuccess("tabulator", paytransacsion)
 }
 
+// Deduct ...
+// Buy item
+func (b *BillingController) Deduct() {
+
+}
+
 // CallbackXsolla ...
 // @Title Get xsolla callback data
 // @Description xsolla send callbac data
@@ -271,6 +277,8 @@ func (b *BillingController) CallbackXsolla() {
 		c.TransactionAt = xsollaData.Transaction.PaymentDate
 
 		beego.Info("charge data: ", c)
+
+		// TODO: logging file.
 
 		// begin tran
 		err := models.AddPaymentTransaction(c)
