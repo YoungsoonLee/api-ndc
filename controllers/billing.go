@@ -93,7 +93,7 @@ func (b *BillingController) GetPaymentToken() {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
 
-	// TODO: validation param uid, itemid
+	// validation param uid
 	// check UID
 	var user models.UserFilter
 	user, err = models.FindByID(strconv.FormatInt(pt.UID, 10))
@@ -289,7 +289,8 @@ func (b *BillingController) CallbackXsolla() {
 
 		// set redis?
 
-		//success
+		// TODO: xsolla success ?
+		// success
 		b.ResponseSuccess("", "")
 
 	} else {
