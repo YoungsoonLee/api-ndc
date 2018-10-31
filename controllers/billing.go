@@ -199,7 +199,7 @@ func (b *BillingController) GetChargeHistory() {
 // Deduct ...
 // Buy item
 func (b *BillingController) Deduct() {
-
+	//
 }
 
 // CallbackXsolla ...
