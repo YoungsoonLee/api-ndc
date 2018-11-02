@@ -10,7 +10,7 @@ import (
 )
 
 type Service struct {
-	SID         string    `orm:"column(SID);size(500);pk" json:"sid"`          // service id
+	SID         string    `orm:"column(SID);size(500);pk" json:"sid"`          // service id 각 게임 별 할당되는 고유 ID
 	Key         string    `orm:"size(500);unique" json:"key"`                  // key for encrypt
 	Description string    `orm:"size(500)" json:"description"`                 //
 	CreateAt    time.Time `orm:"type(datetime);auto_now_add" json:"create_at"` // first save
@@ -32,4 +32,19 @@ func AddService(s Service) (string, error) {
 	}
 
 	return s.SID, nil
+}
+
+func GetService(SID string) (Service, error) {
+	var s Service
+
+	o := orm.NewOrm()
+	sql := "SELECT " +
+		" \"SID\" , " +
+		" Key " +
+		" Description " +
+		" FROM \"service\" " +
+		" WHERE \"SID\" = ? " +
+		" AND close_at is null "
+	_, err := o.Raw(sql, SID).QueryRows(&s)
+	return s, err
 }

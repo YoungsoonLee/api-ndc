@@ -45,9 +45,11 @@ var (
 	*/
 
 	// 20000 ~ related in payment
-	ErrNoPaymentItem = &ControllerError{400, "20001", "PaymentItem information does not exists"}
-	ErrNoCategoryID  = &ControllerError{400, "20002", "PaymentCategory information does not exists"}
-	ErrNoPGID        = &ControllerError{400, "20003", "PaymentGateway information does not exists"}
+	ErrNoPaymentItem    = &ControllerError{400, "20001", "PaymentItem information does not exists"}
+	ErrNoCategoryID     = &ControllerError{400, "20002", "PaymentCategory information does not exists"}
+	ErrNoPGID           = &ControllerError{400, "20003", "PaymentGateway information does not exists"}
+	ErrNoSignature      = &ControllerError{400, "20004", "Deduct Signature does not exists"}
+	ErrInvalidSignature = &ControllerError{400, "20005", "Invalid Signature"}
 
 	// 90000 ~ related on system error
 	ErrDatabase      = &ControllerError{500, "90001", "Database operation error"}

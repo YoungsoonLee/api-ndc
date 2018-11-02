@@ -48,13 +48,42 @@ type XStransaction struct {
 	PaymentDate time.Time `json:"payment_date"` // transaction_at
 }
 
-//  xsolla callback data
+// xsolla callback data
 type XSollaData struct {
 	Signature        string        `json:"signature"`
 	NotificationType string        `json:"notification_type"`
 	User             XSuser        `json:"user"`
 	Purchase         XSpurchase    `json:"purchase"`
 	Transaction      XStransaction `json:"transaction"`
+}
+
+// deduct
+type DeductInput struct {
+	/***
+	 * Inputs ...
+	 * 	service_id: 각 게임 별 할당 되는 고유 ID
+	 * 	access_toke: 유저 ID
+	 * 	external_id: 각 게임 서비스 고유의 트랜잭션 ID
+	 * 	item_name: 각 게임 서비스의 구매시의 해당 아이템 이름. (조회, 통계, 추적용)
+	 * 	item_id: 각 게임 서비스의 구매시의 해당 아이템 ID. (조회, 통계, 추적용)
+	 * 	item_amount: 차감 해야 될 cyber coin 양
+	 *
+	 * 	요청시 헤더 Authorization: Signature에 sha1(위 input을 json으로 + 배포되는 service_key)
+	 *
+	 * TODO: user's ip ???
+	 *
+	 * Outputs...
+	 * 	service_id: 각 게임 별 할당 되는 고유 ID
+	 * 	external_id: 각 게임 서비스 고유의 트랜잭션 ID
+	 * 	deduct_id: cyber coin 차감 후 발생한 고유 트랜잭션 ID
+	 *
+	 */
+	ServiceID  string `json:"service_id"`
+	ExternalID string `json:"external_id"`
+	ItemName   string `json:"item_name"`
+	ItemID     string `json:"item_id"`
+	ItemAmount string `json:"item_amount"`
+	Hash       string `json:"hash"`
 }
 
 // GetChargeItems ...
@@ -186,7 +215,7 @@ func (b *BillingController) GetChargeHistory() {
 		b.ResponseError(libs.ErrInputData, err)
 	}
 	iUID, _ := strconv.ParseInt(UID, 10, 64)
-	paytransacsion, err := models.GetPayTransacyion(iUID)
+	paytransacsion, err := models.GetPayTransaction(iUID)
 	if err != nil {
 		b.ResponseError(libs.ErrDatabase, err)
 	}
@@ -196,10 +225,65 @@ func (b *BillingController) GetChargeHistory() {
 	b.ResponseSuccess("tabulator", paytransacsion)
 }
 
-// Deduct ...
-// Buy item
-func (b *BillingController) Deduct() {
-	//
+// BuyItem ...
+// deduct cyber coin
+func (b *BillingController) BuyItem() {
+	/***
+	 * Inputs ...
+	 * 	service_id: 각 게임 별 할당 되는 고유 ID
+	 * 	external_id: 각 게임 서비스 고유의 트랜잭션 ID
+	 * 	item_name: 각 게임 서비스의 구매시의 해당 아이템 이름. (조회, 통계, 추적용)
+	 * 	item_id: 각 게임 서비스의 구매시의 해당 아이템 ID. (조회, 통계, 추적용)
+	 * 	item_amount: 차감 해야 될 cyber coin 양
+	 * 	hash: sha1(위 input을 json으로 + 배포되는 service_key)
+	 *
+	 * 	요청시 헤더 Authorization: access_token
+	 *
+	 * TODO: user's ip ???
+	 *
+	 * Outputs...
+	 * 	service_id: 각 게임 별 할당 되는 고유 ID
+	 * 	external_id: 각 게임 서비스 고유의 트랜잭션 ID
+	 * 	deduct_id: cyber coin 차감 후 발생한 고유 트랜잭션 ID
+	 */
+
+	// get header
+	accessToken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+	if accessToken == "" {
+		b.ResponseError(libs.ErrTokenAbsent, errors.New(libs.ErrTokenAbsent.Message))
+	}
+
+	// get body
+	var deductInput DeductInput
+	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
+	err := json.Unmarshal(body, &deductInput)
+	if err != nil {
+		b.ResponseError(libs.ErrJSONUnmarshal, err)
+	}
+
+	// TODO: make log file for inputs... with go routine ??s
+
+	beego.Info(deductInput)
+
+	// TODO: get service_key from DB with deductInput.service_id
+	service, err := models.GetService(deductInput.ServiceID)
+	if err != nil {
+		b.ResponseError(libs.ErrDatabase, err)
+	}
+
+	// hashed
+	h := sha1.New()
+	hBody := string(body) + service.Key // ?????
+	h.Write([]byte(hBody))
+	hashedData := fmt.Sprintf("%x", h.Sum(nil))
+
+	if hashedData != signature {
+		beego.Error(hashedData, signature)
+		b.ResponseError(libs.ErrInvalidSignature, errors.New(libs.ErrInvalidSignature.Message))
+	}
+
+	// TODO: check UID
+
 }
 
 // CallbackXsolla ...
