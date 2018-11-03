@@ -50,6 +50,7 @@ var (
 	ErrNoPGID           = &ControllerError{400, "20003", "PaymentGateway information does not exists"}
 	ErrNoSignature      = &ControllerError{400, "20004", "Deduct Signature does not exists"}
 	ErrInvalidSignature = &ControllerError{400, "20005", "Invalid Signature"}
+	ErrInvalidService   = &ControllerError{400, "20006", "Invalid Service"}
 
 	// 90000 ~ related on system error
 	ErrDatabase      = &ControllerError{500, "90001", "Database operation error"}

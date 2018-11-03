@@ -86,6 +86,14 @@ type DeductInput struct {
 	Hash       string `json:"hash"`
 }
 
+type HashedBody struct {
+	ServiceID  string `json:"service_id"`
+	ExternalID string `json:"external_id"`
+	ItemName   string `json:"item_name"`
+	ItemID     string `json:"item_id"`
+	ItemAmount string `json:"item_amount"`
+}
+
 // GetChargeItems ...
 // @Title Create Payment Category
 // @Description create payment category
@@ -247,9 +255,9 @@ func (b *BillingController) BuyItem() {
 	 * 	deduct_id: cyber coin 차감 후 발생한 고유 트랜잭션 ID
 	 */
 
-	// get header
-	accessToken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
-	if accessToken == "" {
+	// get header for auth
+	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+	if authtoken == "" {
 		b.ResponseError(libs.ErrTokenAbsent, errors.New(libs.ErrTokenAbsent.Message))
 	}
 
@@ -268,22 +276,48 @@ func (b *BillingController) BuyItem() {
 	// TODO: get service_key from DB with deductInput.service_id
 	service, err := models.GetService(deductInput.ServiceID)
 	if err != nil {
-		b.ResponseError(libs.ErrDatabase, err)
+		b.ResponseError(libs.ErrInvalidService, err)
 	}
+
+	var hashed HashedBody
+	hashed.ExternalID = deductInput.ExternalID
+	hashed.ItemAmount = deductInput.ItemAmount
+	hashed.ItemID = deductInput.ItemID
+	hashed.ItemName = deductInput.ItemName
+	hashed.ServiceID = deductInput.ServiceID
+	bHashed, _ := json.Marshal(hashed)
 
 	// hashed
 	h := sha1.New()
-	hBody := string(body) + service.Key // ?????
+	hBody := string(bHashed) + service.Key // ?????
 	h.Write([]byte(hBody))
 	hashedData := fmt.Sprintf("%x", h.Sum(nil))
 
-	if hashedData != signature {
-		beego.Error(hashedData, signature)
+	if hashedData != deductInput.Hash {
+		beego.Error(hashedData, deductInput.Hash)
 		b.ResponseError(libs.ErrInvalidSignature, errors.New(libs.ErrInvalidSignature.Message))
 	}
 
-	// TODO: check UID
+	// TODO: check UID, check valid token
+	et := libs.EasyToken{}
+	valid, uid, err := et.ValidateToken(authtoken)
+	if !valid || err != nil {
+		b.ResponseError(libs.ErrExpiredToken, err)
+	}
 
+	// get userinfo
+	//var user models.UserFilter
+	_, err = models.FindByID(uid)
+	if err != nil {
+		b.ResponseError(libs.ErrNoUser, err)
+	}
+
+	// get balance from wallet
+	// check balance
+	// check amount_after_used in paytransaction
+	//	... amount_after_used 가 0이 아닌것 중에서 가장 오래된 데이터 한건 가져오기...
+	// if okay
+	//	... deduct, amount_after_used, balance of wallet update.
 }
 
 // CallbackXsolla ...

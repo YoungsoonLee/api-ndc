@@ -177,11 +177,11 @@ func (c *AuthController) CheckLogin() {
 
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(c.Ctx.Request.Header.Get("Authorization"))
-	valido, uid, err := et.ValidateToken(authtoken)
+	valid, uid, err := et.ValidateToken(authtoken)
 
-	//beego.Info("Check Login: ", uid, valido)
+	//beego.Info("Check Login: ", uid, valid)
 
-	if !valido || err != nil {
+	if !valid || err != nil {
 		c.ResponseError(libs.ErrExpiredToken, err)
 	}
 
