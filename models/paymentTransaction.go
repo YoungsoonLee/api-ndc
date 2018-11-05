@@ -66,5 +66,51 @@ func AddPaymentTransaction(c PaymentTransaction) error {
 
 	err = o.Commit()
 	return nil
+}
 
+// MakeDeduct
+func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance int) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+
+	sql := "UPDATE \"wallet\" SET balance = balance + ? WHERE \"UID\" = ?"
+	_, err = o.Raw(sql, deductedBalance, UID).Exec()
+	if err != nil {
+		beego.Error("Make Deduct Update wallet: ", err)
+		_ = o.Rollback()
+		return err
+	}
+
+	// update amount_after_used
+	sql = "UPATE Payment_transaction SET amount_after_used = ? WHERE \"PxID\" = ?"
+	_, err = o.Raw(sql, deductedAmountAfterUsed, PxID).Exec()
+	if err != nil {
+		beego.Error("Make Deduct Update PaymentTransaction: ", err)
+		_ = o.Rollback()
+		return err
+	}
+
+	err = o.Commit()
+	return nil
+
+}
+
+// GetDeductPayTransaction ...
+func GetDeductPayTransaction(UID int64) (PaymentTransaction, error) {
+	o := orm.NewOrm()
+	var pt PaymentTransaction
+
+	// ... amount_after_used 가 0이 아닌것 중에서 가장 오래된 데이터 한건 가져오기...
+	sql := " SELECT \"PxID\", \"TxID\", \"UID\", \"ItemID\", Item_name, \"PgID\", " +
+		" Currency, Price, Amount, Transaction_at, Amount_After_Used " +
+		" FROM Payment_transaction " +
+		" WHERE \"UID\" = ? " +
+		" and Amount_After_Used != 0 " +
+		" ORDER by Transaction_at asc LIMIT 1"
+	err := o.Raw(sql, UID).QueryRow(&pt)
+	if err != nil {
+		return PaymentTransaction{}, err
+	}
+
+	return pt, nil
 }

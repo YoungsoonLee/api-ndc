@@ -289,7 +289,7 @@ func (b *BillingController) BuyItem() {
 
 	// hashed
 	h := sha1.New()
-	hBody := string(bHashed) + service.Key // ?????
+	hBody := string(bHashed) + service.Key //
 	h.Write([]byte(hBody))
 	hashedData := fmt.Sprintf("%x", h.Sum(nil))
 
@@ -306,18 +306,52 @@ func (b *BillingController) BuyItem() {
 	}
 
 	// get userinfo
-	//var user models.UserFilter
-	_, err = models.FindByID(uid)
+	// var user models.UserFilter
+	user, err := models.FindByID(uid)
 	if err != nil {
 		b.ResponseError(libs.ErrNoUser, err)
 	}
 
-	// get balance from wallet
 	// check balance
+	iDeductInputItemAmount, _ := strconv.Atoi(deductInput.ItemAmount)
+	if user.Balance < iDeductInputItemAmount {
+		// low balance
+		s := "Need more " + strconv.Itoa(iDeductInputItemAmount-user.Balance) + " balance"
+		b.ResponseError(libs.ErrLowBalance, errors.New(s))
+	}
+
 	// check amount_after_used in paytransaction
 	//	... amount_after_used 가 0이 아닌것 중에서 가장 오래된 데이터 한건 가져오기...
+	deductPaytransaction, err := models.GetDeductPayTransaction(user.UID)
+	if err != nil {
+		b.ResponseError(libs.ErrNoPaytransaction, err)
+	}
+
 	// if okay
 	//	... deduct, amount_after_used, balance of wallet update.
+	deductFree, deductPaid := 0, 0
+
+	if deductPaytransaction.AmountAfterUsed > iDeductInputItemAmount {
+		// 해당 paytransaction의 amount_after_used의 amount가 구매 item의 amount 보다 크면, 바로 deduct
+
+		// TODO: logging
+
+		//set kind of deduct
+		if deductPaytransaction.Price == 0 {
+			deductFree = iDeductInputItemAmount
+		} else {
+			deductPaid = iDeductInputItemAmount
+		}
+
+		// calculate
+		deductedAmountAfterUsed := libs.Abs(deductPaytransaction.AmountAfterUsed - iDeductInputItemAmount)
+		deductedBalance := user.Balance - iDeductInputItemAmount
+
+		// make deduct
+		//	update amount_after_used in paytransaction
+		//	update user_wallet
+
+	}
 }
 
 // CallbackXsolla ...

@@ -51,6 +51,8 @@ var (
 	ErrNoSignature      = &ControllerError{400, "20004", "Deduct Signature does not exists"}
 	ErrInvalidSignature = &ControllerError{400, "20005", "Invalid Signature"}
 	ErrInvalidService   = &ControllerError{400, "20006", "Invalid Service"}
+	ErrLowBalance       = &ControllerError{400, "20007", "Low Balance"}
+	ErrNoPaytransaction = &ControllerError{400, "20008", "Paytransaction does not exists"}
 
 	// 90000 ~ related on system error
 	ErrDatabase      = &ControllerError{500, "90001", "Database operation error"}
@@ -71,3 +73,9 @@ var (
 	ErrXMakePaytransaction = &ControllerError{400, "ERROR_MAKE_PAYTRANSACTION", "ERROR_MAKE_PAYTRANSACTION"}
 	ErrXInvalidNotiType    = &ControllerError{400, "INVALID_NOTI_TYPE", "INVALID_NOTI_TYPE"}
 )
+
+// Abs ...
+func Abs(n int) int {
+	y := n >> 63
+	return (n ^ y) - y
+}

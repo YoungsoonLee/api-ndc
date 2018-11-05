@@ -27,7 +27,7 @@ type DeductHistory struct {
 	Amount       int       `json:"amount"`                                          // 아이템의 deduct coin 양
 	DeductByFree int       `json:"deduct_by_free"`                                  // 무료 사이버머니로 구입된 양
 	DeductByPaid int       `json:"deduct_by_paid"`                                  // 유료 사이버머니로 구입된 양
-	UsedAt       time.Time `orm:"type(datetime);" json:"used_at"`                   //
+	UsedAt       time.Time `orm:"type(datetime);" json:"used_at"`                   // 사용 일
 	IsCanceled   bool      `orm:"default(false);null" json:"is_canceled"`           // default: 0(false). 향후 cancel 발생을 대비. 향후 cancel 이력 관련 테이블 필요
 	CanceledAt   time.Time `orm:"type(datetime);null" json:"canceled_at"`           //
 }
