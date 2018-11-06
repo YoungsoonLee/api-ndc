@@ -68,7 +68,7 @@ func AddPaymentTransaction(c PaymentTransaction) error {
 	return nil
 }
 
-// MakeDeduct
+// MakeDeduct ...
 func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance int) error {
 	o := orm.NewOrm()
 	err := o.Begin()

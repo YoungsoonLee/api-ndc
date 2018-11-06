@@ -350,8 +350,75 @@ func (b *BillingController) BuyItem() {
 		// make deduct
 		//	update amount_after_used in paytransaction
 		//	update user_wallet
+		err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
+		if err != nil {
+			// TODO: beego error
+			b.ResponseError(libs.ErrDatabase, err)
+		}
+	} else {
+		// 해당 paytrasaction의 amount_after_used의 amount가 구매 item의 amount 작으면 ...
+		// next paytransacion의 존재 하는 것이다. next paytransaction을 가져오면서 looping 처리 해야 한다.
+		nextIDeductInputItemAmount := iDeductInputItemAmount
+
+		// looping
+		for nextIDeductInputItemAmount != 0 {
+			if nextIDeductInputItemAmount < deductPaytransaction.AmountAfterUsed {
+				deductHistory := nextIDeductInputItemAmount
+				if deductPaytransaction.Price == 0 {
+					deductFree = deductFree + deductHistory
+				} else {
+					deductPaid = deductPaid + deductHistory
+				}
+
+				// calculate
+				deductedAmountAfterUsed := libs.Abs(deductPaytransaction.AmountAfterUsed - nextIDeductInputItemAmount)
+				deductedBalance := user.Balance - nextIDeductInputItemAmount
+
+				err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
+				if err != nil {
+					// TODO: beego error
+					b.ResponseError(libs.ErrDatabase, err)
+				}
+
+				nextIDeductInputItemAmount = 0
+
+			} else {
+				deductHistory := deductPaytransaction.AmountAfterUsed
+				if deductPaytransaction.Price == 0 {
+					deductFree = deductFree + deductHistory
+				} else {
+					deductPaid = deductPaid + deductHistory
+				}
+
+				// !!! important, save next amount before update amount_after_used
+				nextIDeductInputItemAmount = libs.Abs(nextIDeductInputItemAmount - deductPaytransaction.AmountAfterUsed)
+
+				// calculate
+				deductedAmountAfterUsed := 0
+				deductedBalance := user.Balance - deductHistory
+
+				err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
+				if err != nil {
+					// TODO: beego error
+					b.ResponseError(libs.ErrDatabase, err)
+				}
+
+				// get next paytransaction for loop
+				deductPaytransaction, err = models.GetDeductPayTransaction(user.UID)
+				if err != nil {
+					// TODO: beego error
+					b.ResponseError(libs.ErrNoPaytransaction, err)
+				}
+
+			}
+		}
 
 	}
+
+	fmt.Println(deductFree, deductPaid)
+
+	// insert deduct history with go routine
+
 }
 
 // CallbackXsolla ...
