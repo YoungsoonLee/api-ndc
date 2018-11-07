@@ -69,7 +69,7 @@ func AddPaymentTransaction(c PaymentTransaction) error {
 }
 
 // MakeDeduct ...
-func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance int) error {
+func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance int) (UserFilter, error) {
 	o := orm.NewOrm()
 	err := o.Begin()
 
@@ -78,7 +78,7 @@ func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance
 	if err != nil {
 		beego.Error("Make Deduct Update wallet: ", err)
 		_ = o.Rollback()
-		return err
+		return UserFilter{}, err
 	}
 
 	// update amount_after_used
@@ -87,12 +87,29 @@ func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance
 	if err != nil {
 		beego.Error("Make Deduct Update PaymentTransaction: ", err)
 		_ = o.Rollback()
-		return err
+		return UserFilter{}, err
 	}
 
 	err = o.Commit()
-	return nil
 
+	var user UserFilter
+	sql = "SELECT " +
+		" \"user\".\"UID\" , " +
+		" Displayname, " +
+		" Email, " +
+		" Confirmed, " +
+		" Picture, " +
+		" Provider, " +
+		" Permission, " +
+		" Status, " +
+		" \"user\".Create_At, " +
+		" \"user\".Update_At, " +
+		" \"wallet\".Balance " +
+		" FROM \"user\", \"wallet\" " +
+		" WHERE \"user\".\"UID\" = \"wallet\".\"UID\" " +
+		" and \"user\".\"UID\" = ?"
+	err = o.Raw(sql, UID).QueryRow(&user)
+	return user, nil
 }
 
 // GetDeductPayTransaction ...

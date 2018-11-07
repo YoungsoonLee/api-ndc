@@ -36,15 +36,10 @@ func AddService(s Service) (string, error) {
 
 func GetService(SID string) (Service, error) {
 	var s Service
-
 	o := orm.NewOrm()
-	sql := "SELECT " +
-		" \"SID\" , " +
-		" Key " +
-		" Description " +
-		" FROM \"service\" " +
-		" WHERE \"SID\" = ? " +
-		" AND close_at is null "
-	_, err := o.Raw(sql, SID).QueryRows(&s)
+
+	sql := "SELECT \"SID\" , Key,  Description FROM \"service\" WHERE \"SID\" = ? AND close_at is null "
+	err := o.Raw(sql, SID).QueryRow(&s)
+
 	return s, err
 }

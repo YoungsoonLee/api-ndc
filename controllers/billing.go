@@ -94,6 +94,16 @@ type HashedBody struct {
 	ItemAmount string `json:"item_amount"`
 }
 
+type ResultDeduct struct {
+	UID             int64  `json:"uid"`
+	ServiceID       string `json:"service_id"`
+	ExternalID      string `json:"external_id"`
+	ItemName        string `json:"item_name"`
+	ItemID          string `json:"item_id"`
+	ItemAmount      string `json:"item_amount"`
+	BalanceAfterBuy int    `json:"balance_after_buy"`
+}
+
 // GetChargeItems ...
 // @Title Create Payment Category
 // @Description create payment category
@@ -260,11 +270,17 @@ func (b *BillingController) BuyItem() {
 	if authtoken == "" {
 		b.ResponseError(libs.ErrTokenAbsent, errors.New(libs.ErrTokenAbsent.Message))
 	}
+	// check UID, check valid token
+	et := libs.EasyToken{}
+	valid, uid, err := et.ValidateToken(authtoken)
+	if !valid || err != nil {
+		b.ResponseError(libs.ErrExpiredToken, err)
+	}
 
 	// get body
 	var deductInput DeductInput
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	err := json.Unmarshal(body, &deductInput)
+	err = json.Unmarshal(body, &deductInput)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
@@ -273,7 +289,7 @@ func (b *BillingController) BuyItem() {
 
 	beego.Info(deductInput)
 
-	// TODO: get service_key from DB with deductInput.service_id
+	// get service_key from DB with deductInput.service_id
 	service, err := models.GetService(deductInput.ServiceID)
 	if err != nil {
 		b.ResponseError(libs.ErrInvalidService, err)
@@ -298,19 +314,16 @@ func (b *BillingController) BuyItem() {
 		b.ResponseError(libs.ErrInvalidSignature, errors.New(libs.ErrInvalidSignature.Message))
 	}
 
-	// TODO: check UID, check valid token
-	et := libs.EasyToken{}
-	valid, uid, err := et.ValidateToken(authtoken)
-	if !valid || err != nil {
-		b.ResponseError(libs.ErrExpiredToken, err)
-	}
-
 	// get userinfo
 	// var user models.UserFilter
 	user, err := models.FindByID(uid)
 	if err != nil {
 		b.ResponseError(libs.ErrNoUser, err)
 	}
+
+	// TODO: check external_id in deductHistory.
+	// need it ???
+	// think more about the transaction !!!
 
 	// check balance
 	iDeductInputItemAmount, _ := strconv.Atoi(deductInput.ItemAmount)
@@ -329,7 +342,9 @@ func (b *BillingController) BuyItem() {
 
 	// if okay
 	//	... deduct, amount_after_used, balance of wallet update.
+	// this logic for seperate to paid or free when item sell
 	deductFree, deductPaid := 0, 0
+	var uf models.UserFilter
 
 	if deductPaytransaction.AmountAfterUsed > iDeductInputItemAmount {
 		// 해당 paytransaction의 amount_after_used의 amount가 구매 item의 amount 보다 크면, 바로 deduct
@@ -350,7 +365,7 @@ func (b *BillingController) BuyItem() {
 		// make deduct
 		//	update amount_after_used in paytransaction
 		//	update user_wallet
-		err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
+		uf, err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
 		if err != nil {
 			// TODO: beego error
 			b.ResponseError(libs.ErrDatabase, err)
@@ -374,7 +389,7 @@ func (b *BillingController) BuyItem() {
 				deductedAmountAfterUsed := libs.Abs(deductPaytransaction.AmountAfterUsed - nextIDeductInputItemAmount)
 				deductedBalance := user.Balance - nextIDeductInputItemAmount
 
-				err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
+				uf, err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
 				if err != nil {
 					// TODO: beego error
 					b.ResponseError(libs.ErrDatabase, err)
@@ -397,7 +412,7 @@ func (b *BillingController) BuyItem() {
 				deductedAmountAfterUsed := 0
 				deductedBalance := user.Balance - deductHistory
 
-				err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
+				uf, err = models.MakeDeduct(user.UID, deductPaytransaction.PxID, deductedAmountAfterUsed, deductedBalance)
 				if err != nil {
 					// TODO: beego error
 					b.ResponseError(libs.ErrDatabase, err)
@@ -418,6 +433,64 @@ func (b *BillingController) BuyItem() {
 	fmt.Println(deductFree, deductPaid)
 
 	// insert deduct history with go routine
+	var d models.DeductHistory
+	d.UID = user.UID
+	d.SID = deductInput.ServiceID
+	d.ExternalID = deductInput.ExternalID
+	d.ItemID = deductInput.ItemID
+	d.ItemName = deductInput.ItemName
+	d.Amount = deductInput.ItemAmount
+	d.DeductByFree = deductFree
+	d.DeductByPaid = deductPaid
+
+	err = models.AddDeductHistory(d)
+	if err != nil {
+		// TODO: just make a logging file
+		beego.Error("AddDeductHistory: ", err)
+	}
+
+	// return
+	var r ResultDeduct
+	r.UID = user.UID
+	r.ServiceID = deductInput.ServiceID
+	r.ItemName = deductInput.ItemName
+	r.ItemID = deductInput.ItemID
+	r.ItemAmount = deductInput.ItemAmount
+	r.ExternalID = deductInput.ExternalID
+	r.BalanceAfterBuy = uf.Balance
+
+	// success
+	b.ResponseSuccess("", r)
+
+}
+
+// GetDeductHash ...
+// for test or something
+func (b *BillingController) GetDeductHash() {
+	var input HashedBody
+
+	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		b.ResponseError(libs.ErrJSONUnmarshal, err)
+	}
+
+	// TODO: get auth jwt ???
+
+	// get service_key by service_id
+	service, err := models.GetService(input.ServiceID)
+	if err != nil {
+		b.ResponseError(libs.ErrInvalidService, err)
+	}
+
+	bHashed, _ := json.Marshal(input)
+	// hashed
+	h := sha1.New()
+	hBody := string(bHashed) + service.Key //
+	h.Write([]byte(hBody))
+	hashedData := fmt.Sprintf("%x", h.Sum(nil))
+
+	b.ResponseSuccess("", hashedData)
 
 }
 
@@ -506,7 +579,7 @@ func (b *BillingController) CallbackXsolla() {
 			b.XsollaResponseError(libs.ErrXMakePaytransaction)
 		}
 
-		// set redis?
+		// TODO: set redis?
 
 		// TODO: xsolla success ?
 		// success
