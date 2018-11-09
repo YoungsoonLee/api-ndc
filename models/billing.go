@@ -20,6 +20,7 @@ func GetChargeItems() ([]PaymentItem, error) {
 }
 
 // GetPayTransaction ...
+//
 func GetPayTransaction(UID int64) ([]PaymentTransaction, error) {
 	var payTransactions []PaymentTransaction
 
