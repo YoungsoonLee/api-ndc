@@ -464,6 +464,11 @@ func (b *BillingController) BuyItem() {
 
 }
 
+// GetBalance ...
+func (b *BillingController) GetBalance() {
+	// ...
+}
+
 // GetDeductHash ...
 // for test or something
 func (b *BillingController) GetDeductHash() {
