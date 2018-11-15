@@ -468,7 +468,7 @@ func (b *BillingController) BuyItem() {
 func (b *BillingController) GetBalance() {
 	// ...
 	// check header authorization.
-	// ye
+	// keep time
 }
 
 // GetDeductHash ...
