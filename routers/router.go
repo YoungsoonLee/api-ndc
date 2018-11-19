@@ -46,6 +46,8 @@ func init() {
 			beego.NSRouter("/getBalance", &controllers.BillingController{}, "post:GetBalance"),
 		),
 
+		// news
+
 		//adimn
 		beego.NSNamespace("/admin",
 			beego.NSNamespace("/service", beego.NSInclude(&controllers.ServiceController{})),
