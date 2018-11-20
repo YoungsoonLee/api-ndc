@@ -23,7 +23,7 @@ import (
      canceled_at              //
 */
 type DeductHistory struct {
-	ID           int64     `orm:"auto;pk" json:"id"`                                // DeductHistory id
+	ID           int64     `orm:"column(ID);auto;pk" json:"id"`                     // DeductHistory id
 	UID          int64     `orm:"column(UID);" json:"uid"`                          // user id
 	SID          string    `orm:"column(SID);size(500);" json:"sid"`                //
 	ExternalID   string    `orm:"column(ExternalID);size(500);" json:"external_id"` // 아이템 구매시 각 게임 서버로 부터 오는 고유의 트랜잭션 ID
@@ -43,8 +43,8 @@ func AddDeductHistory(d DeductHistory) error {
 
 	//_, err = o.Insert(&c)
 	sql := "INSERT INTO Deduct_history " +
-		"(\"UID\", \"SID\", \"ExternalID\", \"ItemID\", item_name, amount, deduct_by_free, deduct_by_paid) " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
+		"(\"UID\", \"SID\", \"ExternalID\", \"ItemID\", item_name, amount, deduct_by_free, deduct_by_paid, used_at) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, current_timestamp)"
 
 	_, err := o.Raw(sql, d.UID, d.SID, d.ExternalID, d.ItemID, d.ItemName, d.Amount, d.DeductByFree, d.DeductByPaid).Exec()
 	if err != nil {

@@ -243,6 +243,25 @@ func (b *BillingController) GetChargeHistory() {
 	b.ResponseSuccess("tabulator", paytransacsion)
 }
 
+// GetUsedHistory ...
+func (b *BillingController) GetUsedHistory() {
+	UID := b.GetString(":UID")
+	// TODO: validation.
+	if UID == "" {
+		err := errors.New("UID is nil")
+		b.ResponseError(libs.ErrInputData, err)
+	}
+	iUID, _ := strconv.ParseInt(UID, 10, 64)
+	duductHistory, err := models.GetUsedHistory(iUID)
+	if err != nil {
+		b.ResponseError(libs.ErrDatabase, err)
+	}
+
+	//fmt.Println(duductHistory)
+
+	b.ResponseSuccess("tabulator", duductHistory)
+}
+
 // BuyItem ...
 // deduct cyber coin
 func (b *BillingController) BuyItem() {
@@ -265,6 +284,7 @@ func (b *BillingController) BuyItem() {
 	 * 	deduct_id: cyber coin 차감 후 발생한 고유 트랜잭션 ID
 	 */
 
+	// TODO: need more performance !!!
 	// get header for auth
 	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
 	if authtoken == "" {
@@ -314,7 +334,7 @@ func (b *BillingController) BuyItem() {
 		b.ResponseError(libs.ErrInvalidSignature, errors.New(libs.ErrInvalidSignature.Message))
 	}
 
-	// get userinfo
+	// get userinfo for getting balance
 	// var user models.UserFilter
 	user, err := models.FindByID(uid)
 	if err != nil {
@@ -432,6 +452,7 @@ func (b *BillingController) BuyItem() {
 
 	fmt.Println(deductFree, deductPaid)
 
+	// TODO: go routine ???
 	// insert deduct history with go routine
 	var d models.DeductHistory
 	d.UID = user.UID

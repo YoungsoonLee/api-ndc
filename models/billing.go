@@ -20,7 +20,6 @@ func GetChargeItems() ([]PaymentItem, error) {
 }
 
 // GetPayTransaction ...
-//
 func GetPayTransaction(UID int64) ([]PaymentTransaction, error) {
 	var payTransactions []PaymentTransaction
 
@@ -37,4 +36,25 @@ func GetPayTransaction(UID int64) ([]PaymentTransaction, error) {
 		" ORDER BY Transaction_At desc "
 	_, err := o.Raw(sql, UID).QueryRows(&payTransactions)
 	return payTransactions, err
+}
+
+// GetUsedHistory ...
+func GetUsedHistory(UID int64) ([]DeductHistory, error) {
+	var deductHistory []DeductHistory
+
+	o := orm.NewOrm()
+	sql := "SELECT " +
+		" \"ID\" , " +
+		" \"UID\", " +
+		" \"ExternalID\", " +
+		" Item_Name, " +
+		" Amount, " +
+		" Deduct_by_free, " +
+		" Deduct_by_paid, " +
+		" Used_at " +
+		" FROM \"deduct_history\" " +
+		" WHERE \"UID\" = ? " +
+		" ORDER BY Used_at desc "
+	_, err := o.Raw(sql, UID).QueryRows(&deductHistory)
+	return deductHistory, err
 }

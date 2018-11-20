@@ -73,7 +73,7 @@ func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance
 	o := orm.NewOrm()
 	err := o.Begin()
 
-	sql := "UPDATE \"wallet\" SET balance = balance + ? WHERE \"UID\" = ?"
+	sql := "UPDATE \"wallet\" SET balance = ? WHERE \"UID\" = ?"
 	_, err = o.Raw(sql, deductedBalance, UID).Exec()
 	if err != nil {
 		beego.Error("Make Deduct Update wallet: ", err)
@@ -82,7 +82,7 @@ func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance
 	}
 
 	// update amount_after_used
-	sql = "UPATE Payment_transaction SET amount_after_used = ? WHERE \"PxID\" = ?"
+	sql = "UPDATE Payment_transaction SET amount_after_used = ? WHERE \"PxID\" = ?"
 	_, err = o.Raw(sql, deductedAmountAfterUsed, PxID).Exec()
 	if err != nil {
 		beego.Error("Make Deduct Update PaymentTransaction: ", err)

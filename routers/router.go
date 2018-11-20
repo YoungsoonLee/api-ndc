@@ -41,6 +41,7 @@ func init() {
 			beego.NSRouter("/getPaymentToken", &controllers.BillingController{}, "post:GetPaymentToken"),
 			beego.NSRouter("/callbackXsolla", &controllers.BillingController{}, "post:CallbackXsolla"),
 			beego.NSRouter("/getChargeHistory/:UID", &controllers.BillingController{}, "post:GetChargeHistory"),
+			beego.NSRouter("/getUsedHistory/:UID", &controllers.BillingController{}, "post:GetUsedHistory"),
 			beego.NSRouter("/buyItem", &controllers.BillingController{}, "post:BuyItem"),
 			beego.NSRouter("/getDeductHash", &controllers.BillingController{}, "post:GetDeductHash"),
 			beego.NSRouter("/getBalance", &controllers.BillingController{}, "post:GetBalance"),
