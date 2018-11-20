@@ -45,6 +45,7 @@ func init() {
 			beego.NSRouter("/buyItem", &controllers.BillingController{}, "post:BuyItem"),
 			beego.NSRouter("/getDeductHash", &controllers.BillingController{}, "post:GetDeductHash"),
 			beego.NSRouter("/getBalance", &controllers.BillingController{}, "post:GetBalance"),
+			//beego.NSRouter("/testBuyItem", &controllers.BillingController{}, "post:TestBuyItem"),
 		),
 
 		// news

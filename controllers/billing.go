@@ -284,6 +284,8 @@ func (b *BillingController) BuyItem() {
 	 * 	deduct_id: cyber coin 차감 후 발생한 고유 트랜잭션 ID
 	 */
 
+	start := time.Now()
+
 	// TODO: need more performance !!!
 	// get header for auth
 	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
@@ -341,9 +343,9 @@ func (b *BillingController) BuyItem() {
 		b.ResponseError(libs.ErrNoUser, err)
 	}
 
-	// TODO: check external_id in deductHistory.
-	// need it ???
+	// TODO: check external_id in deductHistory. need it ???
 	// think more about the transaction !!!
+	// reduce three select queries !!!
 
 	// check balance
 	iDeductInputItemAmount, _ := strconv.Atoi(deductInput.ItemAmount)
@@ -450,7 +452,7 @@ func (b *BillingController) BuyItem() {
 
 	}
 
-	fmt.Println(deductFree, deductPaid)
+	//fmt.Println(deductFree, deductPaid)
 
 	// TODO: go routine ???
 	// insert deduct history with go routine
@@ -479,6 +481,8 @@ func (b *BillingController) BuyItem() {
 	r.ItemAmount = deductInput.ItemAmount
 	r.ExternalID = deductInput.ExternalID
 	r.BalanceAfterBuy = uf.Balance
+
+	beego.Info("Deducted Time: ", time.Since(start))
 
 	// success
 	b.ResponseSuccess("", r)
