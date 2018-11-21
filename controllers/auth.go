@@ -113,6 +113,8 @@ func (c *AuthController) CreateUser() {
 		c.ResponseError(libs.ErrDatabase, err)
 	}
 
+	fmt.Println("CreateUser: ", UID)
+
 	// auto login
 	user.UID = UID
 	c.makeLogin(&user)
