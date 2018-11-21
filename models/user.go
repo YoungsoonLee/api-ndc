@@ -86,9 +86,9 @@ func (u *User) CheckPass(pass string) (bool, error) {
 
 // AddUser ...
 func AddUser(u User) (int64, error) {
-	var inputUser User
+
 	// make Id
-	inputUser.UID = time.Now().UnixNano()
+	u.UID = time.Now().UTC().UnixNano()
 
 	// make hashed password
 	salt, err := generateSalt()
@@ -101,46 +101,69 @@ func AddUser(u User) (int64, error) {
 	}
 
 	// set password & salt
-	inputUser.Password = hash
-	inputUser.Salt = salt
+	u.Password = hash
+	u.Salt = salt
 
 	// get gravatar
-	inputUser.Picture = gravatar.Avatar(u.Email, 80)
+	u.Picture = gravatar.Avatar(u.Email, 80)
 
 	// make email confirm token
 	u2, err := uuid.NewV4()
 	if err != nil {
 		return 0, err
 	}
-	inputUser.ConfirmResetToken = u2.String()
-	inputUser.ConfirmResetExpire = time.Now().Add(1 * time.Hour)
+	u.ConfirmResetToken = u2.String()
+	u.ConfirmResetExpire = time.Now().Add(1 * time.Hour)
 
-	fmt.Println("insert add user: ", inputUser.UID)
+	fmt.Println("insert add user: ", u.UID)
 
 	// save to db with transaction user and wallet
 	o := orm.NewOrm()
 	err = o.Begin()
 
-	_, err = o.Insert(&inputUser)
+	_, err = o.Insert(&u)
 	if err != nil {
 		err = o.Rollback()
 		return 0, err
 	}
 
-	wallet := Wallet{UID: inputUser.UID, Balance: 0}
+	wallet := Wallet{UID: u.UID, Balance: 0}
 	_, err = o.Insert(&wallet)
 	if err != nil {
 		err = o.Rollback()
 		return 0, err
 	}
 
+	//_, err = o.Insert(&c)
+	/*
+		sql := "INSERT INTO \"user\" " +
+			"(\"UID\", displayname, email, password, salt, confirm_reset_token, Currency, Price, Amount, Transaction_at, Amount_After_Used) " +
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
+
+		_, err = o.Raw(sql, c.PxID, c.TxID, c.UID, c.ItemID, c.ItemName, c.PgID, c.Currency, c.Price, c.Amount, c.TransactionAt, c.Amount).Exec()
+		if err != nil {
+			beego.Error("AddPaymentTransaction: ", err)
+			_ = o.Rollback()
+			return err
+		}
+
+		sql = "UPDATE \"wallet\" SET balance = balance + ? WHERE \"UID\" = ?"
+		_, err = o.Raw(sql, c.Amount, c.UID).Exec()
+
+		if err != nil {
+			beego.Error("AddPaymentTransaction update wallet: ", err)
+			_ = o.Rollback()
+			return err
+		}
+	*/
+
 	err = o.Commit()
 
 	// send confirm mail async
-	go libs.MakeMail(inputUser.Email, "confirm", inputUser.ConfirmResetToken)
+	go libs.MakeMail(u.Email, "confirm", u.ConfirmResetToken)
 
-	fmt.Println("before return add user: ", inputUser.UID)
-	return inputUser.UID, nil
+	fmt.Println("before return add user: ", u.UID)
+	return u.UID, nil
 }
 
 // AddSocialUser ...
