@@ -40,16 +40,16 @@ type User struct {
 // UserFilter ...
 // for giving user's info to front or game
 type UserFilter struct {
-	UID         int64     `orm:"column(UID)" json:"uid"` // user id
-	Displayname string    `json:"displayname"`           // 4 ~ 16 letters for local,
-	Email       string    `json:"email"`                 // max 100 letters
-	Picture     string    `json:"picture"`
-	Provider    string    `json:"provider"`   // google , facebook
-	Permission  string    `json:"permission"` // user, admin ...
-	Status      string    `json:"status"`     // normal, ban, close ...
-	CreateAt    time.Time `json:"create_at"`  // first save
-	UpdateAt    time.Time `json:"update_at"`  // eveytime save
-	Balance     int       `json:"balance"`    // wallet's balance
+	UID         int64     `orm:"column(UID)" json:"uid"`       // user id
+	Displayname string    `orm:"size(30);" json:"displayname"` // 4 ~ 16 letters for local,
+	Email       string    `orm:"size(100);" json:"email"`      // max 100 letters
+	Picture     string    `orm:"size(1000);" json:"picture"`
+	Provider    string    `orm:"size(50);" json:"provider"`        // google , facebook
+	Permission  string    `orm:"size(50);" json:"permission"`      // user, admin ...
+	Status      string    `orm:"size(50);" json:"status"`          // normal, ban, close ...
+	CreateAt    time.Time `orm:"type(datetime);" json:"create_at"` // first save
+	UpdateAt    time.Time `orm:"type(datetime);" json:"update_at"` // eveytime save
+	Balance     int       `orm:"-" json:"balance"`                 // wallet's balance
 }
 
 const pwHashBytes = 64
