@@ -63,9 +63,9 @@ type DeductInput struct {
 	 * Inputs ...
 	 * 	service_id: 각 게임 별 할당 되는 고유 ID
 	 * 	access_toke: 유저 ID
-	 * 	external_id: 각 게임 서비스 고유의 트랜잭션 ID
-	 * 	item_name: 각 게임 서비스의 구매시의 해당 아이템 이름. (조회, 통계, 추적용)
-	 * 	item_id: 각 게임 서비스의 구매시의 해당 아이템 ID. (조회, 통계, 추적용)
+	 * 	external_txid: 각 게임 서비스 고유의 트랜잭션 ID
+	 * 	external_itemid: 각 게임 서비스의 구매시의 해당 아이템 ID. (조회, 통계, 추적용)
+	 * 	external_itemname: 각 게임 서비스의 구매시의 해당 아이템 이름. (조회, 통계, 추적용)
 	 * 	item_amount: 차감 해야 될 cyber coin 양
 	 *
 	 * 	요청시 헤더 Authorization: Signature에 sha1(위 input을 json으로 + 배포되는 service_key)
@@ -78,30 +78,30 @@ type DeductInput struct {
 	 * 	deduct_id: cyber coin 차감 후 발생한 고유 트랜잭션 ID
 	 *
 	 */
-	ServiceID  string `json:"service_id"`
-	ExternalID string `json:"external_id"`
-	ItemName   string `json:"item_name"`
-	ItemID     string `json:"item_id"`
-	ItemAmount string `json:"item_amount"`
-	Hash       string `json:"hash"`
+	ServiceID        string `json:"service_id"`
+	ExternalTxID     string `json:"external_txid"`
+	ExternalItemID   string `json:"external_itemid"`
+	ExternalItemName string `json:"external_itemname"`
+	Amount           int    `json:"amount"`
+	Hash             string `json:"hash"`
 }
 
 type HashedBody struct {
-	ServiceID  string `json:"service_id"`
-	ExternalID string `json:"external_id"`
-	ItemName   string `json:"item_name"`
-	ItemID     string `json:"item_id"`
-	ItemAmount string `json:"item_amount"`
+	ServiceID        string `json:"service_id"`
+	ExternalTxID     string `json:"external_txid"`
+	ExternalItemID   string `json:"external_itemid"`
+	ExternalItemName string `json:"external_itemname"`
+	Amount           int    `json:"amount"`
 }
 
 type ResultDeduct struct {
-	UID             int64  `json:"uid"`
-	ServiceID       string `json:"service_id"`
-	ExternalID      string `json:"external_id"`
-	ItemName        string `json:"item_name"`
-	ItemID          string `json:"item_id"`
-	ItemAmount      string `json:"item_amount"`
-	BalanceAfterBuy int    `json:"balance_after_buy"`
+	UID              int64  `json:"uid"`
+	ServiceID        string `json:"service_id"`
+	ExternalTxID     string `json:"external_txid"`
+	ExternalItemID   string `json:"external_itemid"`
+	ExternalItemName string `json:"external_itemname"`
+	Amount           int    `json:"amount"`
+	BalanceAfterBuy  int    `json:"balance_after_buy"`
 }
 
 // GetChargeItems ...
@@ -308,8 +308,7 @@ func (b *BillingController) BuyItem() {
 	}
 
 	// TODO: make log file for inputs... with go routine ??s
-
-	beego.Info(deductInput)
+	beego.Info("Deduct Input: ", deductInput)
 
 	// get service_key from DB with deductInput.service_id
 	service, err := models.GetService(deductInput.ServiceID)
@@ -318,10 +317,10 @@ func (b *BillingController) BuyItem() {
 	}
 
 	var hashed HashedBody
-	hashed.ExternalID = deductInput.ExternalID
-	hashed.ItemAmount = deductInput.ItemAmount
-	hashed.ItemID = deductInput.ItemID
-	hashed.ItemName = deductInput.ItemName
+	hashed.ExternalTxID = deductInput.ExternalTxID
+	hashed.ExternalItemID = deductInput.ExternalItemID
+	hashed.Amount = deductInput.Amount
+	hashed.ExternalItemName = deductInput.ExternalItemName
 	hashed.ServiceID = deductInput.ServiceID
 	bHashed, _ := json.Marshal(hashed)
 
@@ -336,31 +335,53 @@ func (b *BillingController) BuyItem() {
 		b.ResponseError(libs.ErrInvalidSignature, errors.New(libs.ErrInvalidSignature.Message))
 	}
 
-	// get userinfo for getting balance
-	// var user models.UserFilter
-	user, err := models.FindByID(uid)
+	//test
+	deductPT, err := models.GetDeductPayTransactionUser(uid)
 	if err != nil {
+		beego.Error(err)
 		b.ResponseError(libs.ErrNoUser, err)
 	}
+
+	// TODO: make log file for inputs... with go routine ??s
+	beego.Info("DeductPT: ", deductPT)
+
+	/*
+		// get userinfo for getting balance
+		// var user models.UserFilter
+		user, err := models.FindByID(uid)
+		if err != nil {
+			b.ResponseError(libs.ErrNoUser, err)
+		}
+	*/
 
 	// TODO: check external_id in deductHistory. need it ???
 	// think more about the transaction !!!
 	// reduce three select queries !!!
 
 	// check balance
-	iDeductInputItemAmount, _ := strconv.Atoi(deductInput.ItemAmount)
-	if user.Balance < iDeductInputItemAmount {
+	//iDeductInputItemAmount, _ := strconv.Atoi(deductInput.ItemAmount)
+	//iDeductInputItemAmount := deductInput.Amount
+	/*
+		if user.Balance < iDeductInputItemAmount {
+			// low balance
+			s := "Need more " + strconv.Itoa(iDeductInputItemAmount-user.Balance) + " balance"
+			b.ResponseError(libs.ErrLowBalance, errors.New(s))
+		}
+	*/
+	if deductPT.Balance < deductInput.Amount {
 		// low balance
-		s := "Need more " + strconv.Itoa(iDeductInputItemAmount-user.Balance) + " balance"
+		s := "Need more " + strconv.Itoa(deductInput.Amount-deductPT.Balance) + " balance"
 		b.ResponseError(libs.ErrLowBalance, errors.New(s))
 	}
 
 	// check amount_after_used in paytransaction
 	//	... amount_after_used 가 0이 아닌것 중에서 가장 오래된 데이터 한건 가져오기...
-	deductPaytransaction, err := models.GetDeductPayTransaction(user.UID)
-	if err != nil {
-		b.ResponseError(libs.ErrNoPaytransaction, err)
-	}
+	/*
+		deductPaytransaction, err := models.GetDeductPayTransaction(user.UID)
+		if err != nil {
+			b.ResponseError(libs.ErrNoPaytransaction, err)
+		}
+	*/
 
 	// if okay
 	//	... deduct, amount_after_used, balance of wallet update.
@@ -368,6 +389,92 @@ func (b *BillingController) BuyItem() {
 	deductFree, deductPaid := 0, 0
 	var uf models.UserFilter
 
+	if deductPT.AmountAfterUsed > deductInput.Amount {
+		// 해당 paytransaction의 amount_after_used의 amount가 구매 item의 amount 보다 크면, 바로 deduct
+
+		// TODO: logging
+
+		//set kind of deduct
+		if deductPT.Price == 0 {
+			deductFree = deductInput.Amount
+		} else {
+			deductPaid = deductInput.Amount
+		}
+
+		// calculate
+		deductedAmountAfterUsed := libs.Abs(deductPT.AmountAfterUsed - deductInput.Amount)
+		deductedBalance := deductPT.Balance - deductInput.Amount
+
+		// make deduct
+		//	update amount_after_used in paytransaction
+		//	update user_wallet
+		uf, err = models.MakeDeduct(deductPT.UID, deductPT.PxID, deductedAmountAfterUsed, deductedBalance)
+		if err != nil {
+			// TODO: beego error
+			b.ResponseError(libs.ErrDatabase, err)
+		}
+	} else {
+		// 해당 paytrasaction의 amount_after_used의 amount가 구매 item의 amount 작으면 ...
+		// next paytransacion의 존재 하는 것이다. next paytransaction을 가져오면서 looping 처리 해야 한다.
+		nextIDeductInputItemAmount := deductInput.Amount
+
+		// looping
+		for nextIDeductInputItemAmount != 0 {
+			if nextIDeductInputItemAmount < deductPT.AmountAfterUsed {
+				deductHistory := nextIDeductInputItemAmount
+				if deductPT.Price == 0 {
+					deductFree = deductFree + deductHistory
+				} else {
+					deductPaid = deductPaid + deductHistory
+				}
+
+				// calculate
+				deductedAmountAfterUsed := libs.Abs(deductPT.AmountAfterUsed - nextIDeductInputItemAmount)
+				deductedBalance := deductPT.Balance - nextIDeductInputItemAmount
+
+				uf, err = models.MakeDeduct(deductPT.UID, deductPT.PxID, deductedAmountAfterUsed, deductedBalance)
+				if err != nil {
+					// TODO: beego error
+					b.ResponseError(libs.ErrDatabase, err)
+				}
+
+				nextIDeductInputItemAmount = 0
+
+			} else {
+				deductHistory := deductPT.AmountAfterUsed
+				if deductPT.Price == 0 {
+					deductFree = deductFree + deductHistory
+				} else {
+					deductPaid = deductPaid + deductHistory
+				}
+
+				// !!! important, save next amount before update amount_after_used
+				nextIDeductInputItemAmount = libs.Abs(nextIDeductInputItemAmount - deductPT.AmountAfterUsed)
+
+				// calculate
+				deductedAmountAfterUsed := 0
+				deductedBalance := deductPT.Balance - deductHistory
+
+				uf, err = models.MakeDeduct(deductPT.UID, deductPT.PxID, deductedAmountAfterUsed, deductedBalance)
+				if err != nil {
+					// TODO: beego error
+					b.ResponseError(libs.ErrDatabase, err)
+				}
+
+				// get next paytransaction for loop
+				//deductPT, err = models.GetDeductPayTransaction(user.UID)
+				deductPT, err = models.GetDeductPayTransactionUser(uid)
+				if err != nil {
+					// TODO: beego error
+					b.ResponseError(libs.ErrNoPaytransaction, err)
+				}
+
+			}
+		}
+
+	}
+
+	/* original
 	if deductPaytransaction.AmountAfterUsed > iDeductInputItemAmount {
 		// 해당 paytransaction의 amount_after_used의 amount가 구매 item의 amount 보다 크면, 바로 deduct
 
@@ -451,41 +558,50 @@ func (b *BillingController) BuyItem() {
 		}
 
 	}
+	*/
 
 	//fmt.Println(deductFree, deductPaid)
 
 	// TODO: go routine ???
 	// insert deduct history with go routine
 	var d models.DeductHistory
-	d.UID = user.UID
+	//d.UID = user.UID
+	d.UID = deductPT.UID
 	d.SID = deductInput.ServiceID
-	d.ExternalID = deductInput.ExternalID
-	d.ItemID = deductInput.ItemID
-	d.ItemName = deductInput.ItemName
-	d.Amount = deductInput.ItemAmount
+	d.ExternalTxID = deductInput.ExternalTxID
+	d.ExternalItemID = deductInput.ExternalItemID
+	d.ExternalItemName = deductInput.ExternalItemName
+	d.Amount = deductInput.Amount
 	d.DeductByFree = deductFree
 	d.DeductByPaid = deductPaid
+	d.BalanceAfterBuy = uf.Balance
 
-	err = models.AddDeductHistory(d)
-	if err != nil {
-		// TODO: just make a logging file
-		beego.Error("AddDeductHistory: ", err)
-	}
+	go models.AddDeductHistory(d)
+	/*
+		err = models.AddDeductHistory(d)
+		if err != nil {
+			// TODO: just make a logging file
+			beego.Error("AddDeductHistory: ", err)
+		}
+	*/
 
 	// return
-	var r ResultDeduct
-	r.UID = user.UID
-	r.ServiceID = deductInput.ServiceID
-	r.ItemName = deductInput.ItemName
-	r.ItemID = deductInput.ItemID
-	r.ItemAmount = deductInput.ItemAmount
-	r.ExternalID = deductInput.ExternalID
-	r.BalanceAfterBuy = uf.Balance
+	/*
+		var r ResultDeduct
+		//d.UID = user.UID
+		r.UID = deductPT.UID
+		r.ServiceID = deductInput.ServiceID
+		r.ItemName = deductInput.ItemName
+		r.ItemID = deductInput.ItemID
+		r.ItemAmount = deductInput.ItemAmount
+		r.ExternalID = deductInput.ExternalID
+		r.BalanceAfterBuy = uf.Balance
+	*/
 
 	beego.Info("Deducted Time: ", time.Since(start))
 
 	// success
-	b.ResponseSuccess("", r)
+	b.ResponseSuccess("", d)
 
 }
 
@@ -506,8 +622,8 @@ func (b *BillingController) GetDeductHash() {
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
-
 	// TODO: get auth jwt ???
+	// fmt.Println(input)
 
 	// get service_key by service_id
 	service, err := models.GetService(input.ServiceID)

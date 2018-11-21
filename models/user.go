@@ -28,7 +28,7 @@ type User struct {
 	ConfirmResetExpire  time.Time  `orm:"null"  json:"confirm_reset_expire"`
 	Picture             string     `orm:"size(1000);null" json:"picture"`
 	Provider            string     `orm:"size(50);null" json:"provider"` // google , facebook
-	ProviderID          string     `orm:"size(1000);null" json:"provider_id"`
+	ProviderID          string     `orm:"column(ProviderID);size(1000);null" json:"provider_id"`
 	ProviderAccessToken string     `orm:"size(1000);null" json:"provider_access_token"`
 	Permission          string     `orm:"size(50);default(user)" json:"permission"`     // user, admin ...
 	Status              string     `orm:"size(50);default(normal)" json:"status"`       // normal, ban, close ...

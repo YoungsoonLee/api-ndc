@@ -46,8 +46,8 @@ func GetUsedHistory(UID int64) ([]DeductHistory, error) {
 	sql := "SELECT " +
 		" \"ID\" , " +
 		" \"UID\", " +
-		" \"ExternalID\", " +
-		" Item_Name, " +
+		" \"ExternalTxID\", " +
+		" external_item_name, " +
 		" Amount, " +
 		" Deduct_by_free, " +
 		" Deduct_by_paid, " +
