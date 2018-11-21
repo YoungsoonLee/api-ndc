@@ -336,23 +336,23 @@ func (b *BillingController) BuyItem() {
 	}
 
 	//test
-	deductPT, err := models.GetDeductPayTransactionUser(uid)
-	if err != nil {
-		beego.Error(err)
-		b.ResponseError(libs.ErrNoUser, err)
-	}
-
-	// TODO: make log file for inputs... with go routine ??s
-	beego.Info("DeductPT: ", deductPT)
-
 	/*
-		// get userinfo for getting balance
-		// var user models.UserFilter
-		user, err := models.FindByID(uid)
+		deductPT, err := models.GetDeductPayTransactionUser(uid)
 		if err != nil {
+			beego.Error(err)
 			b.ResponseError(libs.ErrNoUser, err)
 		}
 	*/
+
+	// TODO: make log file for inputs... with go routine ??s
+	//beego.Info("DeductPT: ", deductPT)
+
+	// get userinfo for getting balance
+	// var user models.UserFilter
+	user, err := models.FindByID(uid)
+	if err != nil {
+		b.ResponseError(libs.ErrNoUser, err)
+	}
 
 	// TODO: check external_id in deductHistory. need it ???
 	// think more about the transaction !!!
@@ -361,27 +361,27 @@ func (b *BillingController) BuyItem() {
 	// check balance
 	//iDeductInputItemAmount, _ := strconv.Atoi(deductInput.ItemAmount)
 	//iDeductInputItemAmount := deductInput.Amount
+
+	if user.Balance < deductInput.Amount {
+		// low balance
+		s := "Need more " + strconv.Itoa(deductInput.Amount-user.Balance) + " balance"
+		b.ResponseError(libs.ErrLowBalance, errors.New(s))
+	}
 	/*
-		if user.Balance < iDeductInputItemAmount {
+		if deductPT.Balance < deductInput.Amount {
 			// low balance
-			s := "Need more " + strconv.Itoa(iDeductInputItemAmount-user.Balance) + " balance"
+			s := "Need more " + strconv.Itoa(deductInput.Amount-deductPT.Balance) + " balance"
 			b.ResponseError(libs.ErrLowBalance, errors.New(s))
 		}
 	*/
-	if deductPT.Balance < deductInput.Amount {
-		// low balance
-		s := "Need more " + strconv.Itoa(deductInput.Amount-deductPT.Balance) + " balance"
-		b.ResponseError(libs.ErrLowBalance, errors.New(s))
-	}
 
 	// check amount_after_used in paytransaction
 	//	... amount_after_used 가 0이 아닌것 중에서 가장 오래된 데이터 한건 가져오기...
-	/*
-		deductPaytransaction, err := models.GetDeductPayTransaction(user.UID)
-		if err != nil {
-			b.ResponseError(libs.ErrNoPaytransaction, err)
-		}
-	*/
+
+	deductPT, err := models.GetDeductPayTransaction(user.UID)
+	if err != nil {
+		b.ResponseError(libs.ErrNoPaytransaction, err)
+	}
 
 	// if okay
 	//	... deduct, amount_after_used, balance of wallet update.
@@ -403,7 +403,8 @@ func (b *BillingController) BuyItem() {
 
 		// calculate
 		deductedAmountAfterUsed := libs.Abs(deductPT.AmountAfterUsed - deductInput.Amount)
-		deductedBalance := deductPT.Balance - deductInput.Amount
+		//deductedBalance := deductPT.Balance - deductInput.Amount
+		deductedBalance := user.Balance - deductInput.Amount
 
 		// make deduct
 		//	update amount_after_used in paytransaction
@@ -430,7 +431,8 @@ func (b *BillingController) BuyItem() {
 
 				// calculate
 				deductedAmountAfterUsed := libs.Abs(deductPT.AmountAfterUsed - nextIDeductInputItemAmount)
-				deductedBalance := deductPT.Balance - nextIDeductInputItemAmount
+				//deductedBalance := deductPT.Balance - nextIDeductInputItemAmount
+				deductedBalance := user.Balance - nextIDeductInputItemAmount
 
 				uf, err = models.MakeDeduct(deductPT.UID, deductPT.PxID, deductedAmountAfterUsed, deductedBalance)
 				if err != nil {
@@ -453,7 +455,8 @@ func (b *BillingController) BuyItem() {
 
 				// calculate
 				deductedAmountAfterUsed := 0
-				deductedBalance := deductPT.Balance - deductHistory
+				//deductedBalance := deductPT.Balance - deductHistory
+				deductedBalance := user.Balance - deductHistory
 
 				uf, err = models.MakeDeduct(deductPT.UID, deductPT.PxID, deductedAmountAfterUsed, deductedBalance)
 				if err != nil {
@@ -462,8 +465,8 @@ func (b *BillingController) BuyItem() {
 				}
 
 				// get next paytransaction for loop
-				//deductPT, err = models.GetDeductPayTransaction(user.UID)
-				deductPT, err = models.GetDeductPayTransactionUser(uid)
+				deductPT, err = models.GetDeductPayTransaction(user.UID)
+				//deductPT, err = models.GetDeductPayTransactionUser(uid)
 				if err != nil {
 					// TODO: beego error
 					b.ResponseError(libs.ErrNoPaytransaction, err)
