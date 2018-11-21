@@ -179,8 +179,8 @@ func (c *AuthController) CheckLogin() {
 	}
 
 	// get userinfo
-	var user models.UserFilter
-	user, err = models.FindByID(uid)
+	//var user models.UserFilter
+	user, err := models.FindByID(uid)
 	if err != nil {
 		c.ResponseError(libs.ErrNoUser, err)
 	}

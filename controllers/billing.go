@@ -142,8 +142,8 @@ func (b *BillingController) GetPaymentToken() {
 
 	// validation param uid
 	// check UID
-	var user models.UserFilter
-	user, err = models.FindByID(strconv.FormatInt(pt.UID, 10))
+	//var user models.UserFilter
+	user, err := models.FindByID(strconv.FormatInt(pt.UID, 10))
 	if err != nil {
 		b.ResponseError(libs.ErrNoUser, err)
 	}

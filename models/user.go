@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/YoungsoonLee/api-ndc/libs"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	uuid "github.com/satori/go.uuid"
 	"github.com/zoonman/gravatar"
@@ -252,9 +253,9 @@ func FindByEmail(email string) (User, error) {
 }
 
 // FindByID ...
-func FindByID(id string) (UserFilter, error) {
-	//beego.Info("findByID: ", id)
-	var user UserFilter
+func FindByID(id string) (*UserFilter, error) {
+	beego.Info("findByID: ", id)
+	var user *UserFilter
 
 	o := orm.NewOrm()
 	sql := "SELECT " +

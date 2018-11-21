@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/astaxie/beego"
@@ -147,8 +148,11 @@ func (u *UserController) ResetPassword() {
 
 // GetProfile ...
 func (u *UserController) GetProfile() {
-	var user models.UserFilter
+	//var user models.UserFilter
 	UID := u.GetString(":UID")
+
+	beego.Info("UID: ", UID)
+	fmt.Println("UID: ", UID)
 
 	// validation
 	u.ValidID(UID)
