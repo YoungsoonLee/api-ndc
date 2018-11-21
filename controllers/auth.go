@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -172,7 +173,8 @@ func (c *AuthController) CheckLogin() {
 	authtoken := strings.TrimSpace(c.Ctx.Request.Header.Get("Authorization"))
 	valid, uid, err := et.ValidateToken(authtoken)
 
-	// beego.Info("Check Login: ", uid, valid)
+	beego.Info("Check Login: ", uid, valid)
+	fmt.Println("Check Login: ", uid, valid)
 
 	if !valid || err != nil {
 		c.ResponseError(libs.ErrExpiredToken, err)
