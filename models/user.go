@@ -40,16 +40,16 @@ type User struct {
 // UserFilter ...
 // for giving user's info to front or game
 type UserFilter struct {
-	UID         int64     `orm:"column(UID);pk" json:"uid"`          // user id
-	Displayname string    `orm:"size(30);unique" json:"displayname"` // 4 ~ 16 letters for local,
-	Email       string    `orm:"size(100);unique" json:"email"`      // max 100 letters
-	Picture     string    `orm:"size(1000);null" json:"picture"`
-	Provider    string    `orm:"size(50);null" json:"provider"`                // google , facebook
-	Permission  string    `orm:"size(50);default(user)" json:"permission"`     // user, admin ...
-	Status      string    `orm:"size(50);default(normal)" json:"status"`       // normal, ban, close ...
-	CreateAt    time.Time `orm:"type(datetime);auto_now_add" json:"create_at"` // first save
-	UpdateAt    time.Time `orm:"type(datetime);auto_now" json:"update_at"`     // eveytime save
-	Balance     int       `orm:"-" json:"balance"`                             // wallet's balance
+	UID         int64     `orm:"column(UID)" json:"uid"` // user id
+	Displayname string    `json:"displayname"`           // 4 ~ 16 letters for local,
+	Email       string    `json:"email"`                 // max 100 letters
+	Picture     string    `json:"picture"`
+	Provider    string    `json:"provider"`   // google , facebook
+	Permission  string    `json:"permission"` // user, admin ...
+	Status      string    `json:"status"`     // normal, ban, close ...
+	CreateAt    time.Time `json:"create_at"`  // first save
+	UpdateAt    time.Time `json:"update_at"`  // eveytime save
+	Balance     int       `json:"balance"`    // wallet's balance
 }
 
 const pwHashBytes = 64
@@ -191,7 +191,7 @@ func UpdateSocialInfo(u User) (int64, string, error) {
 func FindAuthByDisplayname(displayname string) (User, error) {
 	var user User
 	o := orm.NewOrm()
-	//err := o.Raw("SELECT \"UID\", \"Displayname\", \"Password\", \"Salt\", \"Provider\" FROM \"user\" WHERE \"Displayname\" = ?", displayname).QueryRow(&user)
+
 	sql := "SELECT " +
 		" \"UID\" , " +
 		" Displayname, " +
@@ -209,7 +209,7 @@ func FindAuthByDisplayname(displayname string) (User, error) {
 func FindByDisplayname(displayname string) (User, error) {
 	var user User
 	o := orm.NewOrm()
-	//err := o.Raw("SELECT \"UID\", \"Displayname\", \"Email\", \"Confirmed\", \"Picture\", \"Provider\", \"Permission\", \"Status\", \"CreateAt\", \"UpdateAt\" FROM \"user\" WHERE \"Email\" = ?", email).QueryRow(&user)
+
 	sql := "SELECT " +
 		" \"UID\" , " +
 		" Displayname, " +
@@ -233,7 +233,7 @@ func FindByDisplayname(displayname string) (User, error) {
 func FindByEmail(email string) (User, error) {
 	var user User
 	o := orm.NewOrm()
-	//err := o.Raw("SELECT \"UID\", \"Displayname\", \"Email\", \"Confirmed\", \"Picture\", \"Provider\", \"Permission\", \"Status\", \"CreateAt\", \"UpdateAt\" FROM \"user\" WHERE \"Email\" = ?", email).QueryRow(&user)
+
 	sql := "SELECT " +
 		" \"UID\" , " +
 		" Displayname, " +
@@ -253,7 +253,9 @@ func FindByEmail(email string) (User, error) {
 
 // FindByID ...
 func FindByID(id string) (UserFilter, error) {
+	//beego.Info("findByID: ", id)
 	var user UserFilter
+
 	o := orm.NewOrm()
 	sql := "SELECT " +
 		" \"user\".\"UID\" , " +
@@ -269,19 +271,15 @@ func FindByID(id string) (UserFilter, error) {
 		" \"wallet\".Balance " +
 		" FROM \"user\", \"wallet\" " +
 		" WHERE \"user\".\"UID\" = \"wallet\".\"UID\" " +
-		" and \"user\".\"UID\" = ?"
+		" and \"user\".\"UID\" = ? "
+
 	err := o.Raw(sql, id).QueryRow(&user)
 	return user, err
 }
 
 // FindByProvider ...
 func FindByProvider(provider string, accessToken string, providerID string) bool {
-	/*
-		var user User
-		o := orm.NewOrm()
-		err := o.Raw("SELECT Id, Displayname, Email, Confirmed, Picture, Provider, Permission, Status, Create_At, Update_At FROM \"user\" WHERE provider = ? and accessToken= ?", provider, accessToken).QueryRow(&user)
-		return user, err
-	*/
+
 	o := orm.NewOrm()
 	exist := o.QueryTable("user").Filter("Provider", provider).Filter("ProviderAccessToken", accessToken).Filter("ProviderID", providerID).Exist()
 
@@ -293,8 +291,6 @@ func CheckConfirmEmailToken(token string) (*User, *libs.ControllerError, error) 
 	var user *User
 	o := orm.NewOrm()
 
-	// already confirmed
-	//err := o.Raw("select \"UID\", \"Displayname\", \"Confirmed\" from \"user\" where \"ConfirmResetToken\" =? and \"Confirmed\" = true", token).QueryRow(&user)
 	sql := "SELECT " +
 		" \"UID\" , " +
 		" Displayname, " +
@@ -325,8 +321,8 @@ func CheckConfirmEmailToken(token string) (*User, *libs.ControllerError, error) 
 	return user, nil, nil
 }
 
-// Confirm Email ...
-//func ConfirmEmail(token string) (User, error) {
+// Confirm Email...
+// func ConfirmEmail(token string) (User, error) {
 func ConfirmEmail(u User) (User, error) {
 	o := orm.NewOrm()
 	_, err := o.Raw("UPDATE \"user\" SET Confirmed = ?, Confirm_Reset_Expire =? WHERE \"UID\"=?", true, nil, u.UID).Exec()

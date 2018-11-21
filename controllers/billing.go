@@ -335,7 +335,7 @@ func (b *BillingController) BuyItem() {
 		b.ResponseError(libs.ErrInvalidSignature, errors.New(libs.ErrInvalidSignature.Message))
 	}
 
-	//test
+	// test, query with paytransacion and user
 	/*
 		deductPT, err := models.GetDeductPayTransactionUser(uid)
 		if err != nil {
@@ -344,11 +344,9 @@ func (b *BillingController) BuyItem() {
 		}
 	*/
 
-	// TODO: make log file for inputs... with go routine ??s
-	//beego.Info("DeductPT: ", deductPT)
+	// TODO: make log file for inputs... with go routine ??
 
 	// get userinfo for getting balance
-	// var user models.UserFilter
 	user, err := models.FindByID(uid)
 	if err != nil {
 		b.ResponseError(libs.ErrNoUser, err)

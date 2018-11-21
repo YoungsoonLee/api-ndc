@@ -8,6 +8,7 @@ import (
 
 	"github.com/YoungsoonLee/api-ndc/libs"
 	"github.com/YoungsoonLee/api-ndc/models"
+	"github.com/astaxie/beego"
 )
 
 // AuthController ...
@@ -36,7 +37,7 @@ type AuthedData struct {
 	UID         int64  `json:"uid"`
 	Displayname string `json:"displayname"`
 	Balance     int    `json:"balance"`
-	Pciture     string `json:"picture"`
+	Picture     string `json:"picture"`
 }
 
 // CheckDisplayName ...
@@ -128,13 +129,6 @@ func (c *AuthController) Login() {
 	var user models.User
 
 	body, _ := ioutil.ReadAll(c.Ctx.Request.Body)
-	/*
-		if body == nil {
-			body = c.Ctx.Input.RequestBody // for local test
-		}
-	*/
-	//err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
-
 	err := json.Unmarshal(body, &user)
 	if err != nil {
 		c.ResponseError(libs.ErrJSONUnmarshal, err)
@@ -145,15 +139,13 @@ func (c *AuthController) Login() {
 	c.ValidDisplayname(user.Displayname)
 	c.ValidPassword(user.Password)
 
-	//fmt.Println(user.Displayname, user.Password)
-
 	// Find salt, password hash for auth
 	user, err = models.FindAuthByDisplayname(user.Displayname)
-
-	//fmt.Println("test: 0", err)
 	if err != nil {
 		c.ResponseError(libs.ErrPass, err)
 	}
+
+	beego.Info(user)
 
 	if user.Provider == "facebook" && user.Password == "" {
 		c.ResponseError(libs.ErrLoginFacebook, nil)
@@ -169,6 +161,7 @@ func (c *AuthController) Login() {
 		c.ResponseError(libs.ErrPass, err)
 	}
 
+	//beego.Info(user)
 	c.makeLogin(&user)
 }
 
@@ -179,7 +172,7 @@ func (c *AuthController) CheckLogin() {
 	authtoken := strings.TrimSpace(c.Ctx.Request.Header.Get("Authorization"))
 	valid, uid, err := et.ValidateToken(authtoken)
 
-	//beego.Info("Check Login: ", uid, valid)
+	// beego.Info("Check Login: ", uid, valid)
 
 	if !valid || err != nil {
 		c.ResponseError(libs.ErrExpiredToken, err)
@@ -191,6 +184,8 @@ func (c *AuthController) CheckLogin() {
 	if err != nil {
 		c.ResponseError(libs.ErrNoUser, err)
 	}
+
+	//beego.Info(user)
 
 	c.ResponseSuccess("", AuthedData{user.UID, user.Displayname, user.Balance, user.Picture})
 }
@@ -291,16 +286,14 @@ func (c *AuthController) makeLogin(user *models.User) {
 	et := libs.EasyToken{
 		Displayname: user.Displayname,
 		UID:         user.UID,
-		Expires:     time.Now().Unix() + 3600, // 1 hour
+		Expires:     time.Now().Unix() + 3600*24*7, // 7days, 1 hour(3600)
 	}
-
-	// TODO: set cookie ???
 
 	token, err := et.GetToken()
 	if token == "" || err != nil {
 		c.ResponseError(libs.ErrTokenOther, nil)
 	}
 
-	// TODO: add balance to LoginToken
+	//beego.Info("makeLogin: ", user.UID)
 	c.ResponseSuccess("", LoginToken{user.Displayname, user.UID, token})
 }

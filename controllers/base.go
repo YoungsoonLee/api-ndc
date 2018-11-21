@@ -141,17 +141,14 @@ func (b *BaseController) ResponseSuccess(key string, value interface{}) {
 			Message: "success",
 			Data:    value,
 		}
+
+		//beego.Info("rr: ", mresponse)
+
 		b.Ctx.Output.JSON(mresponse, true, true)
 		//b.StopRun()
 	}
 
 	if key == "tabulator" {
-		/*
-			tresponse := &models.MrespCode{
-				Data: value,
-			}
-		*/
-
 		b.Ctx.Output.JSON(value, true, true)
 		//b.StopRun()
 	}
