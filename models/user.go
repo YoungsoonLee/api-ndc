@@ -86,9 +86,9 @@ func (u *User) CheckPass(pass string) (bool, error) {
 
 // AddUser ...
 func AddUser(u User) (int64, error) {
-
+	var inputUser User
 	// make Id
-	u.UID = time.Now().UnixNano()
+	inputUser.UID = time.Now().UnixNano()
 
 	// make hashed password
 	salt, err := generateSalt()
@@ -101,33 +101,33 @@ func AddUser(u User) (int64, error) {
 	}
 
 	// set password & salt
-	u.Password = hash
-	u.Salt = salt
+	inputUser.Password = hash
+	inputUser.Salt = salt
 
 	// get gravatar
-	u.Picture = gravatar.Avatar(u.Email, 80)
+	inputUser.Picture = gravatar.Avatar(u.Email, 80)
 
 	// make email confirm token
 	u2, err := uuid.NewV4()
 	if err != nil {
 		return 0, err
 	}
-	u.ConfirmResetToken = u2.String()
-	u.ConfirmResetExpire = time.Now().Add(1 * time.Hour)
+	inputUser.ConfirmResetToken = u2.String()
+	inputUser.ConfirmResetExpire = time.Now().Add(1 * time.Hour)
 
-	fmt.Println("insert add user: ", u.UID)
+	fmt.Println("insert add user: ", inputUser.UID)
 
 	// save to db with transaction user and wallet
 	o := orm.NewOrm()
 	err = o.Begin()
 
-	_, err = o.Insert(&u)
+	_, err = o.Insert(&inputUser)
 	if err != nil {
 		err = o.Rollback()
 		return 0, err
 	}
 
-	wallet := Wallet{UID: u.UID, Balance: 0}
+	wallet := Wallet{UID: inputUser.UID, Balance: 0}
 	_, err = o.Insert(&wallet)
 	if err != nil {
 		err = o.Rollback()
@@ -137,10 +137,10 @@ func AddUser(u User) (int64, error) {
 	err = o.Commit()
 
 	// send confirm mail async
-	go libs.MakeMail(u.Email, "confirm", u.ConfirmResetToken)
+	go libs.MakeMail(inputUser.Email, "confirm", inputUser.ConfirmResetToken)
 
-	fmt.Println("before return add user: ", u.UID)
-	return u.UID, nil
+	fmt.Println("before return add user: ", inputUser.UID)
+	return inputUser.UID, nil
 }
 
 // AddSocialUser ...
