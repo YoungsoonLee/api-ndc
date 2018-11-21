@@ -115,6 +115,8 @@ func AddUser(u User) (int64, error) {
 	u.ConfirmResetToken = u2.String()
 	u.ConfirmResetExpire = time.Now().Add(1 * time.Hour)
 
+	fmt.Println("insert add user: ", u.UID)
+
 	// save to db with transaction user and wallet
 	o := orm.NewOrm()
 	err = o.Begin()
@@ -137,6 +139,7 @@ func AddUser(u User) (int64, error) {
 	// send confirm mail async
 	go libs.MakeMail(u.Email, "confirm", u.ConfirmResetToken)
 
+	fmt.Println("before return add user: ", u.UID)
 	return u.UID, nil
 }
 

@@ -92,6 +92,7 @@ func (c *AuthController) CreateUser() {
 	c.ValidEmail(user.Email)
 	c.ValidPassword(user.Password)
 
+	// seperate check for error msg
 	// check dup displayname
 	_, err = models.FindByDisplayname(user.Displayname)
 
