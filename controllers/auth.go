@@ -284,6 +284,8 @@ func (c *AuthController) updateSocialInfo(user models.User) {
 }
 
 func (c *AuthController) makeLogin(user *models.User) {
+	fmt.Println("makeLogin: ", user.UID)
+
 	// login
 	et := libs.EasyToken{
 		Displayname: user.Displayname,
