@@ -8,25 +8,11 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-/**
-  payment_transaction          // 결제 완료 테이블(charge). 파라미터 비교시 payment_try 내용과 다를경우 hacking으로 간주
-     PxID                         // payment_try의 pid
-     transaction_id              // pg사로 부터 넘어오는 unique id로 pg사 이용해서 추적이 가능해야 한다.
-     user_id
-     item_id
-     pg_id
-     currency                    // default: 'USD'.
-     price
-     amount                      //cyber coin amount
-     transaction_at              // 결제 완료일
-     amount_after_used           // 사용 후 남은 amount (insert시 충전되는 amount 와 동일하게...deduct 뙬때 마이너스)
-     is_canceled                 // default: 0(false). 향후 cancel 발생을 대비. 향후 cancel 이력 관련 테이블 필요
-     canceled_at                //
-*/
+// PaymentTransaction ...
 type PaymentTransaction struct {
 	PxID            string    `orm:"column(PxID);size(500);pk" json:"pxid"`             // paymentTry의 pid
 	TxID            string    `orm:"column(TxID);" json:"txid"`                         // pg사로 부터 넘어오는 unique id로 pg사 이용해서 추적이 가능해야 한다.
-	UID             int64     `orm:"column(UID);" json:"uid"`                           // user id
+	UID             string    `orm:"column(UID);size(50);" json:"uid"`                  // user id
 	ItemID          int       `orm:"column(ItemID);" json:"itemid"`                     // itemid
 	ItemName        string    `orm:"size(1000);" json:"item_name"`                      // not null,
 	PgID            int       `orm:"column(PgID);" json:"pgid"`                         // pgid
@@ -39,11 +25,12 @@ type PaymentTransaction struct {
 	CanceledAt      time.Time `orm:"type(datetime);null" json:"canceled_at"`            // 결제 완료일
 }
 
+// DeductPaymentTransaction ...
 type DeductPaymentTransaction struct {
 	//PaymentTransaction PaymentTransaction
 	PxID            string    `orm:"column(PxID);size(500);pk" json:"pxid"`             // paymentTry의 pid
 	TxID            string    `orm:"column(TxID);" json:"txid"`                         // pg사로 부터 넘어오는 unique id로 pg사 이용해서 추적이 가능해야 한다.
-	UID             int64     `orm:"column(UID);" json:"uid"`                           // user id
+	UID             string    `orm:"column(UID);size(50);" json:"uid"`                  // user id
 	ItemID          int       `orm:"column(ItemID);" json:"itemid"`                     // itemid
 	ItemName        string    `orm:"size(1000);" json:"item_name"`                      // not null,
 	PgID            int       `orm:"column(PgID);" json:"pgid"`                         // pgid
@@ -57,6 +44,26 @@ type DeductPaymentTransaction struct {
 	Balance         int       `json:"balance"`
 }
 
+// GetPayTransaction ...
+func GetPayTransaction(UID string) ([]PaymentTransaction, error) {
+	var payTransactions []PaymentTransaction
+
+	o := orm.NewOrm()
+	sql := "SELECT " +
+		" \"PxID\" , " +
+		" \"TxID\", " +
+		" Item_Name, " +
+		" Price, " +
+		" Amount, " +
+		" Transaction_At" +
+		" FROM \"payment_transaction\" " +
+		" WHERE \"UID\" = ? " +
+		" ORDER BY Transaction_At desc "
+	_, err := o.Raw(sql, UID).QueryRows(&payTransactions)
+	return payTransactions, err
+}
+
+// AddPaymentTransaction ...
 func AddPaymentTransaction(c PaymentTransaction) error {
 	o := orm.NewOrm()
 	err := o.Begin()
@@ -87,7 +94,7 @@ func AddPaymentTransaction(c PaymentTransaction) error {
 }
 
 // MakeDeduct ...
-func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance int) (UserFilter, error) {
+func MakeDeduct(UID string, PxID string, deductedAmountAfterUsed, deductedBalance int) (UserFilter, error) {
 	o := orm.NewOrm()
 	err := o.Begin()
 
@@ -131,7 +138,7 @@ func MakeDeduct(UID int64, PxID string, deductedAmountAfterUsed, deductedBalance
 }
 
 // GetDeductPayTransaction ...
-func GetDeductPayTransaction(UID int64) (PaymentTransaction, error) {
+func GetDeductPayTransaction(UID string) (PaymentTransaction, error) {
 	o := orm.NewOrm()
 	var pt PaymentTransaction
 
@@ -150,7 +157,7 @@ func GetDeductPayTransaction(UID int64) (PaymentTransaction, error) {
 	return pt, nil
 }
 
-// GetDeductPayTransaction ...
+// GetDeductPayTransactionUser ...
 func GetDeductPayTransactionUser(UID string) (DeductPaymentTransaction, error) {
 	o := orm.NewOrm()
 	var ptu DeductPaymentTransaction

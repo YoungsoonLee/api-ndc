@@ -9,20 +9,10 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-/**
-  payment_try                  // 결제 시도 테이블. PG사 이용시에 이용한다. ex) PG사 오픈전에 기록된다.
-     pid                         // unique, not auto increase. make uid like 'P******'. string
-     user_id
-     item_id
-     pg_id
-     currency                    // default: 'USD'.
-     price
-     amount
-     tried_at                    // 결제 시도 일자
-*/
+// PaymentTry ...
 type PaymentTry struct {
 	PxID     string    `orm:"column(PxID);size(500);pk" json:"pxid"`       // unique, payment transaction id
-	UID      int64     `orm:"column(UID);" json:"uid"`                     // user id
+	UID      string    `orm:"column(UID);size(50);" json:"uid"`            // user id
 	ItemID   int       `orm:"column(ItemID);" json:"itemid"`               // itemid
 	ItemName string    `orm:"size(1000);" json:"item_name"`                // not null,
 	PgID     int       `orm:"column(PgID);" json:"pgid"`                   // pgid
@@ -38,12 +28,6 @@ type PaymentTry struct {
 func AddPaymentTry(pt PaymentTry) (PaymentTry, error) {
 	// check UID
 	o := orm.NewOrm()
-	/*
-		exist := o.QueryTable("user").Filter("UID", pt.UID).Exist()
-		if !exist {
-			return PaymentTry{}, errors.New(libs.ErrNoUser.Message)
-		}
-	*/
 
 	// set PgID, Currency, Price, Amount through paymentItem
 	sql := "SELECT \"ItemID\", \"PgID\", Item_name, Currency, Price, Amount FROM Payment_Item WHERE \"ItemID\" = ?"
@@ -71,6 +55,7 @@ func AddPaymentTry(pt PaymentTry) (PaymentTry, error) {
 	return pt, nil
 }
 
+// CheckPaymentTry ...
 func CheckPaymentTry(pt PaymentTry) (PaymentTry, bool) {
 	o := orm.NewOrm()
 	err := o.QueryTable("PaymentTry").Filter("PxID", pt.PxID).Filter("UID", pt.UID).Filter("Amount", pt.Amount).One(&pt)

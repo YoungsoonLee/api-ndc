@@ -20,7 +20,7 @@ type AuthController struct {
 // LoginToken ...
 type LoginToken struct {
 	Displayname string `json:"displayname"`
-	UID         int64  `json:"uid"`
+	UID         string `json:"uid"`
 	Token       string `json:"token"`
 }
 
@@ -35,7 +35,7 @@ type Social struct {
 
 // AuthedData ...
 type AuthedData struct {
-	UID         int64  `json:"uid"`
+	UID         string `json:"uid"`
 	Displayname string `json:"displayname"`
 	Balance     int    `json:"balance"`
 	Picture     string `json:"picture"`
@@ -110,7 +110,7 @@ func (c *AuthController) CreateUser() {
 
 	// save to db
 	UID, err := models.AddUser(user)
-	if err != nil {
+	if err != nil || UID == "" {
 		c.ResponseError(libs.ErrDatabase, err)
 	}
 
@@ -205,12 +205,6 @@ func (c *AuthController) CheckLogin() {
 // @router /Social [post]
 func (c *AuthController) Social() {
 	var social Social
-	/*
-		err := json.Unmarshal(c.Ctx.Input.RequestBody, &social)
-		if err != nil {
-			c.ResponseError(libs.ErrJSONUnmarshal, err)
-		}
-	*/
 	body, _ := ioutil.ReadAll(c.Ctx.Request.Body)
 	err := json.Unmarshal(body, &social)
 	if err != nil {
@@ -247,6 +241,7 @@ func (c *AuthController) Social() {
 		user.ProviderID = social.ProviderID
 		user.Email = social.Email
 		user.Picture = social.Picture
+		user.Confirmed = true
 		c.createSocialUser(user)
 	}
 

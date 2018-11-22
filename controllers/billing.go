@@ -95,7 +95,7 @@ type HashedBody struct {
 }
 
 type ResultDeduct struct {
-	UID              int64  `json:"uid"`
+	UID              string `json:"uid"`
 	ServiceID        string `json:"service_id"`
 	ExternalTxID     string `json:"external_txid"`
 	ExternalItemID   string `json:"external_itemid"`
@@ -143,7 +143,7 @@ func (b *BillingController) GetPaymentToken() {
 	// validation param uid
 	// check UID
 	//var user models.UserFilter
-	user, err := models.FindByID(strconv.FormatInt(pt.UID, 10))
+	user, err := models.FindByID(pt.UID)
 	if err != nil {
 		b.ResponseError(libs.ErrNoUser, err)
 	}
@@ -159,7 +159,7 @@ func (b *BillingController) GetPaymentToken() {
 
 	// make json send data for getting token
 	var sendDataToGetToken libs.XsollaSendJSONToGetToken
-	sendDataToGetToken.User.ID.Value = strconv.FormatInt(pt.UID, 10)
+	sendDataToGetToken.User.ID.Value = pt.UID
 	sendDataToGetToken.User.ID.Hidden = true
 	sendDataToGetToken.User.Email.Value = user.Email
 	sendDataToGetToken.User.Email.AllowModify = false
@@ -232,8 +232,8 @@ func (b *BillingController) GetChargeHistory() {
 		err := errors.New("UID is nil")
 		b.ResponseError(libs.ErrInputData, err)
 	}
-	iUID, _ := strconv.ParseInt(UID, 10, 64)
-	paytransacsion, err := models.GetPayTransaction(iUID)
+
+	paytransacsion, err := models.GetPayTransaction(UID)
 	if err != nil {
 		b.ResponseError(libs.ErrDatabase, err)
 	}
@@ -251,8 +251,8 @@ func (b *BillingController) GetUsedHistory() {
 		err := errors.New("UID is nil")
 		b.ResponseError(libs.ErrInputData, err)
 	}
-	iUID, _ := strconv.ParseInt(UID, 10, 64)
-	duductHistory, err := models.GetUsedHistory(iUID)
+	//iUID, _ := strconv.ParseInt(UID, 10, 64)
+	duductHistory, err := models.GetUsedHistory(UID)
 	if err != nil {
 		b.ResponseError(libs.ErrDatabase, err)
 	}
@@ -697,7 +697,7 @@ func (b *BillingController) CallbackXsolla() {
 		// check payment try
 		var pt models.PaymentTry
 		pt.PxID = xsollaData.Transaction.ExternalID
-		pt.UID, _ = strconv.ParseInt(xsollaData.User.ID, 10, 64)
+		pt.UID = xsollaData.User.ID
 		pt.Amount = xsollaData.Purchase.Total.Amount
 		pt, exists := models.CheckPaymentTry(pt)
 		if !exists {
@@ -708,7 +708,7 @@ func (b *BillingController) CallbackXsolla() {
 		var c models.PaymentTransaction
 		c.PxID = xsollaData.Transaction.ExternalID
 		c.TxID = strconv.Itoa(xsollaData.Transaction.ID)
-		c.UID, _ = strconv.ParseInt(xsollaData.User.ID, 10, 64)
+		c.UID = xsollaData.User.ID
 		c.ItemID = pt.ItemID
 		c.ItemName = pt.ItemName
 		c.PgID = pt.PgID

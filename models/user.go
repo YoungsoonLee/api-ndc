@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/YoungsoonLee/api-ndc/libs"
@@ -17,7 +18,7 @@ import (
 
 // User ...
 type User struct {
-	UID                 int64      `orm:"column(UID);pk" json:"uid"`          // user id
+	UID                 string     `orm:"column(UID);size(50);pk" json:"uid"` // user id
 	Displayname         string     `orm:"size(30);unique" json:"displayname"` // 4 ~ 16 letters for local,
 	Email               string     `orm:"size(100);unique" json:"email"`      // max 100 letters
 	Password            string     `orm:"null" json:"password"`               // if account is provider, this column is null
@@ -41,9 +42,9 @@ type User struct {
 // UserFilter ...
 // for giving user's info to front or game
 type UserFilter struct {
-	UID         int64     `orm:"column(UID)" json:"uid"`       // user id
-	Displayname string    `orm:"size(30);" json:"displayname"` // 4 ~ 16 letters for local,
-	Email       string    `orm:"size(100);" json:"email"`      // max 100 letters
+	UID         string    `orm:"column(UID);size(50);" json:"uid"` // user id
+	Displayname string    `orm:"size(30);" json:"displayname"`     // 4 ~ 16 letters for local,
+	Email       string    `orm:"size(100);" json:"email"`          // max 100 letters
 	Picture     string    `orm:"size(1000);" json:"picture"`
 	Provider    string    `orm:"size(50);" json:"provider"`        // google , facebook
 	Permission  string    `orm:"size(50);" json:"permission"`      // user, admin ...
@@ -85,19 +86,19 @@ func (u *User) CheckPass(pass string) (bool, error) {
 }
 
 // AddUser ...
-func AddUser(u User) (int64, error) {
+func AddUser(u User) (string, error) {
 
 	// make Id
-	u.UID = time.Now().UTC().UnixNano()
+	u.UID = "U" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
 	// make hashed password
 	salt, err := generateSalt()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	hash, err := generatePassHash(u.Password, salt)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	// set password & salt
@@ -110,66 +111,64 @@ func AddUser(u User) (int64, error) {
 	// make email confirm token
 	u2, err := uuid.NewV4()
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	u.ConfirmResetToken = u2.String()
 	u.ConfirmResetExpire = time.Now().Add(1 * time.Hour)
-
-	fmt.Println("insert add user: ", u.UID)
 
 	// save to db with transaction user and wallet
 	o := orm.NewOrm()
 	err = o.Begin()
 
-	_, err = o.Insert(&u)
-	if err != nil {
-		err = o.Rollback()
-		return 0, err
-	}
-
-	wallet := Wallet{UID: u.UID, Balance: 0}
-	_, err = o.Insert(&wallet)
-	if err != nil {
-		err = o.Rollback()
-		return 0, err
-	}
-
-	//_, err = o.Insert(&c)
 	/*
-		sql := "INSERT INTO \"user\" " +
-			"(\"UID\", displayname, email, password, salt, confirm_reset_token, Currency, Price, Amount, Transaction_at, Amount_After_Used) " +
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
-
-		_, err = o.Raw(sql, c.PxID, c.TxID, c.UID, c.ItemID, c.ItemName, c.PgID, c.Currency, c.Price, c.Amount, c.TransactionAt, c.Amount).Exec()
+		_, err = o.Insert(&u)
 		if err != nil {
-			beego.Error("AddPaymentTransaction: ", err)
-			_ = o.Rollback()
-			return err
+			beego.Error("rollback: ", err)
+			err = o.Rollback()
+			return "", err
 		}
 
-		sql = "UPDATE \"wallet\" SET balance = balance + ? WHERE \"UID\" = ?"
-		_, err = o.Raw(sql, c.Amount, c.UID).Exec()
-
+		wallet := Wallet{UID: u.UID, Balance: 0}
+		_, err = o.Insert(&wallet)
 		if err != nil {
-			beego.Error("AddPaymentTransaction update wallet: ", err)
-			_ = o.Rollback()
-			return err
+			beego.Error("rollback: ", err)
+			err = o.Rollback()
+			return "", err
 		}
 	*/
+
+	sql := "INSERT INTO \"user\" " +
+		"(\"UID\", displayname, email, password, salt, confirm_reset_token, confirm_reset_expire, picture, create_at, update_at) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+
+	_, err = o.Raw(sql, u.UID, u.Displayname, u.Email, u.Password, u.Salt, u.ConfirmResetToken, u.ConfirmResetExpire, u.Picture).Exec()
+	if err != nil {
+		beego.Error("insert into user: ", err)
+		_ = o.Rollback()
+		return "", err
+	}
+
+	sql = "INSERT INTO \"wallet\" (\"UID\", create_at, update_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+	_, err = o.Raw(sql, u.UID).Exec()
+
+	if err != nil {
+		beego.Error("insert into wallet: ", err)
+		_ = o.Rollback()
+		return "", err
+	}
 
 	err = o.Commit()
 
 	// send confirm mail async
 	go libs.MakeMail(u.Email, "confirm", u.ConfirmResetToken)
 
-	fmt.Println("before return add user: ", u.UID)
 	return u.UID, nil
 }
 
 // AddSocialUser ...
-func AddSocialUser(u User) (int64, string, error) {
+func AddSocialUser(u User) (string, string, error) {
 	// make Id
-	u.UID = time.Now().UnixNano()
+	u.UID = "U" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 
 	// for displayname
 	b := make([]byte, 5) //equals 8 charachters
@@ -183,17 +182,39 @@ func AddSocialUser(u User) (int64, string, error) {
 	o := orm.NewOrm()
 	err := o.Begin()
 
-	_, err = o.Insert(&u)
+	/*
+		_, err = o.Insert(&u)
+		if err != nil {
+			err = o.Rollback()
+			return "", "", err
+		}
+
+		wallet := Wallet{UID: u.UID, Balance: 0}
+		_, err = o.Insert(&wallet)
+		if err != nil {
+			err = o.Rollback()
+			return "", "", err
+		}
+	*/
+
+	sql := "INSERT INTO \"user\" " +
+		"(\"UID\", displayname, email, password, salt, confirm_reset_token, confirm_reset_expire, picture, provider_access_token, \"ProviderID\", provider, Confirmed, create_at, update_at) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+
+	_, err = o.Raw(sql, u.UID, u.Displayname, u.Email, u.Password, u.Salt, u.ConfirmResetToken, u.ConfirmResetExpire, u.Picture, u.ProviderAccessToken, u.ProviderID, u.Provider, u.Confirmed).Exec()
 	if err != nil {
-		err = o.Rollback()
-		return 0, "", err
+		beego.Error("insert into user: ", err)
+		_ = o.Rollback()
+		return "", "", err
 	}
 
-	wallet := Wallet{UID: u.UID, Balance: 0}
-	_, err = o.Insert(&wallet)
+	sql = "INSERT INTO \"wallet\" (\"UID\", create_at, update_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+	_, err = o.Raw(sql, u.UID).Exec()
+
 	if err != nil {
-		err = o.Rollback()
-		return 0, "", err
+		beego.Error("insert into wallet: ", err)
+		_ = o.Rollback()
+		return "", "", err
 	}
 
 	err = o.Commit()
@@ -202,12 +223,20 @@ func AddSocialUser(u User) (int64, string, error) {
 }
 
 // UpdateSocialInfo ...
-func UpdateSocialInfo(u User) (int64, string, error) {
+func UpdateSocialInfo(u User) (string, string, error) {
 
 	o := orm.NewOrm()
-	if _, err := o.Update(&u, "Provider", "ProviderAccessToken", "ProviderID", "Picture", "Confirmed"); err != nil {
+	/*
+		if _, err := o.Update(&u, "Provider", "ProviderAccessToken", "ProviderID", "Picture", "Confirmed"); err != nil {
 
-		return 0, "", err
+			return "", "", err
+		}
+	*/
+	sql := "UPDATE \"user\" SET Provider = ?,  Provider_Access_Token = ?, \"ProviderID\" = ?,  Picture = ?, Confirmed =? WHERE \"UID\" = ?"
+	_, err := o.Raw(sql, u.Provider, u.ProviderAccessToken, u.ProviderID, u.Picture, u.Confirmed, u.UID).Exec()
+
+	if err != nil {
+		return "", "", err
 	}
 
 	return u.UID, u.Displayname, nil
@@ -348,8 +377,7 @@ func CheckConfirmEmailToken(token string) (*User, *libs.ControllerError, error) 
 	return user, nil, nil
 }
 
-// Confirm Email...
-// func ConfirmEmail(token string) (User, error) {
+// ConfirmEmail ...
 func ConfirmEmail(u User) (User, error) {
 	o := orm.NewOrm()
 	_, err := o.Raw("UPDATE \"user\" SET Confirmed = ?, Confirm_Reset_Expire =? WHERE \"UID\"=?", true, nil, u.UID).Exec()
@@ -360,6 +388,7 @@ func ConfirmEmail(u User) (User, error) {
 	return u, err
 }
 
+// ResendConfirmEmail ...
 func ResendConfirmEmail(u User) (User, error) {
 	// make email confirm token
 	u2, err := uuid.NewV4()
@@ -382,6 +411,7 @@ func ResendConfirmEmail(u User) (User, error) {
 	return u, nil
 }
 
+// SendPasswordResetToken ...
 func SendPasswordResetToken(u User) (User, error) {
 	// make forgot password token
 	u2, err := uuid.NewV4()
@@ -404,6 +434,7 @@ func SendPasswordResetToken(u User) (User, error) {
 	return u, nil
 }
 
+// CheckResetPasswordToken ...
 func CheckResetPasswordToken(resetToken string) (*User, *libs.ControllerError, error) {
 	var user *User
 
@@ -448,7 +479,7 @@ func ResetPassword(resetToken, password string) error {
 	return nil
 }
 
-// UpdateProfile
+// UpdateProfile ...
 func UpdateProfile(u User) (User, error) {
 	//TODO: if email changed, send email confirm.
 
@@ -460,7 +491,7 @@ func UpdateProfile(u User) (User, error) {
 	return u, nil
 }
 
-// UpdatePassword
+// UpdatePassword ...
 func UpdatePassword(u User) (User, error) {
 	o := orm.NewOrm()
 

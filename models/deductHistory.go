@@ -24,7 +24,7 @@ import (
 */
 type DeductHistory struct {
 	ID               int64     `orm:"column(ID);auto;pk" json:"id"`                              // DeductHistory id
-	UID              int64     `orm:"column(UID);" json:"uid"`                                   // user id
+	UID              string    `orm:"column(UID);size(50);" json:"uid"`                          // user id
 	SID              string    `orm:"column(SID);size(500);" json:"sid"`                         //
 	ExternalTxID     string    `orm:"column(ExternalTxID);size(500);" json:"external_txid"`      // 아이템 구매시 각 게임 서버로 부터 오는 고유의 트랜잭션 ID
 	ExternalItemID   string    `orm:"column(ExternalItemID);size(1000);" json:"external_itemid"` // 각 게임별 고유의 item_id 혹은 고유의 추적이 가능한 무엇
@@ -36,6 +36,27 @@ type DeductHistory struct {
 	IsCanceled       bool      `orm:"default(false);null" json:"is_canceled"`                    // default: 0(false). 향후 cancel 발생을 대비. 향후 cancel 이력 관련 테이블 필요
 	CanceledAt       time.Time `orm:"type(datetime);null" json:"canceled_at"`                    //
 	BalanceAfterBuy  int       `orm:"-" json:"balance_after_buy"`
+}
+
+// GetUsedHistory ...
+func GetUsedHistory(UID string) ([]DeductHistory, error) {
+	var deductHistory []DeductHistory
+
+	o := orm.NewOrm()
+	sql := "SELECT " +
+		" \"ID\" , " +
+		" \"UID\", " +
+		" \"ExternalTxID\", " +
+		" external_item_name, " +
+		" Amount, " +
+		" Deduct_by_free, " +
+		" Deduct_by_paid, " +
+		" Used_at " +
+		" FROM \"deduct_history\" " +
+		" WHERE \"UID\" = ? " +
+		" ORDER BY Used_at desc "
+	_, err := o.Raw(sql, UID).QueryRows(&deductHistory)
+	return deductHistory, err
 }
 
 // AddDeductHistory ...

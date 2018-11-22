@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/astaxie/beego"
 
@@ -42,7 +41,7 @@ func (u *UserController) ConfirmEmail() {
 	} else {
 		if libErr.Code == "10008" {
 			// alaredy confirmed
-			u.ResponseSuccess("UID", strconv.FormatInt(user.UID, 10))
+			u.ResponseSuccess("UID", user.UID)
 		} else {
 			// error
 			u.ResponseError(libErr, err)
@@ -51,7 +50,7 @@ func (u *UserController) ConfirmEmail() {
 
 	// finish update confirm email.
 	// havt to go to login in frontend
-	u.ResponseSuccess("UID", strconv.FormatInt(user.UID, 10))
+	u.ResponseSuccess("UID", user.UID)
 }
 
 // ResendConfirmEmail ...
@@ -118,7 +117,7 @@ func (u *UserController) IsValidResetPasswordToken() {
 	if libErr != nil {
 		if libErr.Code == "10008" {
 			// alaredy confirmed
-			u.ResponseSuccess("UID", strconv.FormatInt(user.UID, 10))
+			u.ResponseSuccess("UID", user.UID)
 		} else {
 			// error
 			u.ResponseError(libErr, err)
@@ -127,7 +126,7 @@ func (u *UserController) IsValidResetPasswordToken() {
 
 	// finish update confirm email.
 	// havt to go to login in frontend
-	u.ResponseSuccess("UID", strconv.FormatInt(user.UID, 10))
+	u.ResponseSuccess("UID", user.UID)
 }
 
 // ResetPassword ...

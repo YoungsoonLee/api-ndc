@@ -3,7 +3,6 @@ package libs
 import (
 	"errors"
 	"os"
-	"strconv"
 
 	"github.com/astaxie/beego"
 	"github.com/dgrijalva/jwt-go"
@@ -12,7 +11,7 @@ import (
 
 type EasyToken struct {
 	Displayname string
-	UID         int64
+	UID         string
 	Expires     int64
 }
 
@@ -42,7 +41,7 @@ func init() {
 func (e EasyToken) GetToken() (string, error) {
 	claims := &jwt.StandardClaims{
 		ExpiresAt: e.Expires, //time.Unix(c.ExpiresAt, 0)
-		Issuer:    strconv.FormatInt(e.UID, 10),
+		Issuer:    e.UID,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(verifyKey))
