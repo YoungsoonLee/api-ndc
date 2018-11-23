@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/astaxie/beego"
 
@@ -132,7 +133,15 @@ func (u *UserController) IsValidResetPasswordToken() {
 // ResetPassword ...
 func (u *UserController) ResetPassword() {
 	var resetPassword ResetPassword
-	err := json.Unmarshal(u.Ctx.Input.RequestBody, &resetPassword)
+	/*
+		err := json.Unmarshal(u.Ctx.Input.RequestBody, &resetPassword)
+		if err != nil {
+			u.ResponseError(libs.ErrJSONUnmarshal, err)
+		}
+	*/
+
+	body, _ := ioutil.ReadAll(u.Ctx.Request.Body)
+	err := json.Unmarshal(body, &resetPassword)
 	if err != nil {
 		u.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
