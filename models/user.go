@@ -226,12 +226,14 @@ func AddSocialUser(u User) (string, string, error) {
 func UpdateSocialInfo(u User) (string, string, error) {
 
 	o := orm.NewOrm()
+
 	/*
 		if _, err := o.Update(&u, "Provider", "ProviderAccessToken", "ProviderID", "Picture", "Confirmed"); err != nil {
 
 			return "", "", err
 		}
 	*/
+
 	sql := "UPDATE \"user\" SET Provider = ?,  Provider_Access_Token = ?, \"ProviderID\" = ?,  Picture = ?, Confirmed =? WHERE \"UID\" = ?"
 	_, err := o.Raw(sql, u.Provider, u.ProviderAccessToken, u.ProviderID, u.Picture, u.Confirmed, u.UID).Exec()
 
