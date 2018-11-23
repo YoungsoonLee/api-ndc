@@ -33,7 +33,8 @@ func MakeMail(email string, emailType string, token string) {
 	switch emailType {
 	case "confirm":
 		title = "Email confirm."
-		host := beego.AppConfig.String("FRONTHOST") + "/confirmEmail/" + token
+		//host := beego.AppConfig.String("FRONTHOST") + "/confirmEmail/" + token
+		host := "https://apifront-ndc.herokuapp.com/confirmEmail/" + token
 
 		rEmail = hermes.Email{
 			Body: hermes.Body{
@@ -57,7 +58,8 @@ func MakeMail(email string, emailType string, token string) {
 		}
 	case "forgotPassword":
 		title = "Forgot password"
-		host := beego.AppConfig.String("frontHost") + "/resetPassword/" + token
+		//host := beego.AppConfig.String("FRONTHOST") + "/resetPassword/" + token
+		host := "https://apifront-ndc.herokuapp.com/resetPassword/" + token
 
 		rEmail = hermes.Email{
 			Body: hermes.Body{
