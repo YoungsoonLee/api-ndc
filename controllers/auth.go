@@ -20,8 +20,8 @@ type AuthController struct {
 // LoginToken ...
 type LoginToken struct {
 	Displayname string `json:"displayname"`
-	UID         string `json:"uid"`
-	Token       string `json:"token"`
+	//UID         string `json:"uid"`
+	Token string `json:"token"`
 }
 
 // Social ...
@@ -284,7 +284,7 @@ func (c *AuthController) updateSocialInfo(user models.User) {
 func (c *AuthController) makeLogin(user *models.User) {
 	fmt.Println("makeLogin: ", user.UID)
 
-	// login
+	// make JWT
 	et := libs.EasyToken{
 		Displayname: user.Displayname,
 		UID:         user.UID,
@@ -297,5 +297,7 @@ func (c *AuthController) makeLogin(user *models.User) {
 	}
 
 	//beego.Info("makeLogin: ", user.UID)
-	c.ResponseSuccess("", LoginToken{user.Displayname, user.UID, token})
+	//c.ResponseSuccess("", LoginToken{user.Displayname, user.UID, token})
+	c.ResponseSuccess("", LoginToken{user.Displayname, token})
+
 }
