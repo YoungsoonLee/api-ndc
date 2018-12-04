@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/astaxie/beego"
 
@@ -157,15 +157,40 @@ func (u *UserController) ResetPassword() {
 // GetProfile ...
 func (u *UserController) GetProfile() {
 	//var user models.UserFilter
-	UID := u.GetString(":UID")
+	/*
+		UID := u.GetString(":UID")
 
-	beego.Info("UID: ", UID)
-	fmt.Println("UID: ", UID)
+		beego.Info("UID: ", UID)
+		fmt.Println("UID: ", UID)
 
-	// validation
-	u.ValidID(UID)
+		// validation
+		u.ValidID(UID)
 
-	user, err := models.FindByID(UID)
+		user, err := models.FindByID(UID)
+		if err != nil {
+			u.ResponseError(libs.ErrNoUser, err)
+		}
+		u.ResponseSuccess("", user)
+	*/
+
+	//fmt.Println("test")
+
+	et := libs.EasyToken{}
+	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
+	beego.Info("token: ", authtoken)
+
+	valid, uid, err := et.ValidateToken(authtoken)
+
+	//beego.Info("Check Login: ", uid, valid)
+	//fmt.Println("Check Login: ", uid, valid)
+
+	if !valid || err != nil {
+		u.ResponseError(libs.ErrExpiredToken, err)
+	}
+
+	// get userinfo
+	//var user models.UserFilter
+	user, err := models.FindByID(uid)
 	if err != nil {
 		u.ResponseError(libs.ErrNoUser, err)
 	}
@@ -174,11 +199,24 @@ func (u *UserController) GetProfile() {
 
 // UpdateProfile ...
 func (u *UserController) UpdateProfile() {
+
+	et := libs.EasyToken{}
+	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
+	//beego.Info("token: ", authtoken)
+
+	valid, uid, err := et.ValidateToken(authtoken)
+
+	if !valid || err != nil {
+		u.ResponseError(libs.ErrExpiredToken, err)
+	}
+
 	var user models.User
-	err := json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+	err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
 	if err != nil {
 		u.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
+
+	user.UID = uid
 
 	if _, err := models.UpdateProfile(user); err != nil {
 		u.ResponseError(libs.ErrDatabase, err)
@@ -188,8 +226,20 @@ func (u *UserController) UpdateProfile() {
 
 // UpdatePassword ...
 func (u *UserController) UpdatePassword() {
+	et := libs.EasyToken{}
+	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
+	//beego.Info("token: ", authtoken)
+
+	valid, uid, err := et.ValidateToken(authtoken)
+
+	if !valid || err != nil {
+		u.ResponseError(libs.ErrExpiredToken, err)
+	}
+
 	var user models.User
-	err := json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+	user.UID = uid
+
+	err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
 	if err != nil {
 		u.ResponseError(libs.ErrJSONUnmarshal, err)
 	}

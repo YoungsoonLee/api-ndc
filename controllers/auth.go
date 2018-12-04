@@ -149,7 +149,7 @@ func (c *AuthController) Login() {
 		c.ResponseError(libs.ErrPass, err)
 	}
 
-	beego.Info(user)
+	//beego.Info(user)
 
 	if user.Provider == "facebook" && user.Password == "" {
 		c.ResponseError(libs.ErrLoginFacebook, nil)
@@ -177,7 +177,7 @@ func (c *AuthController) CheckLogin() {
 	valid, uid, err := et.ValidateToken(authtoken)
 
 	beego.Info("Check Login: ", uid, valid)
-	fmt.Println("Check Login: ", uid, valid)
+	//fmt.Println("Check Login: ", uid, valid)
 
 	if !valid || err != nil {
 		c.ResponseError(libs.ErrExpiredToken, err)
