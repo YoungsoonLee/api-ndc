@@ -131,14 +131,27 @@ func (b *BillingController) GetChargeItems() {
 // @Failure 403 body is empty
 // @router / [post]
 func (b *BillingController) GetPaymentToken() {
+
+	et := libs.EasyToken{}
+	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+	beego.Info("token: ", authtoken)
+
+	valid, uid, err := et.ValidateToken(authtoken)
+
+	if !valid || err != nil {
+		b.ResponseError(libs.ErrExpiredToken, err)
+	}
+
 	//
 	var pt models.PaymentTry
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	err := json.Unmarshal(body, &pt)
+	err = json.Unmarshal(body, &pt)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
+
+	pt.UID = uid
 
 	// validation param uid
 	// check UID
