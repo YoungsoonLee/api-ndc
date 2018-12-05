@@ -12,12 +12,6 @@ type ServiceController struct {
 }
 
 // Post ...
-// @Title CreateService
-// @Description create services
-// @Param	body		body 	models.Service	true		"body for service content"
-// @Success 200 {int} models.Service.Id
-// @Failure 403 body is empty
-// @router / [post]
 func (s *ServiceController) Post() {
 
 	var service models.Service

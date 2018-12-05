@@ -43,11 +43,12 @@ type AuthedData struct {
 
 // CheckDisplayName ...
 // @Title CheckDisplayName
-// @Description create services
-// @Param	body		body 		true		""
+// @Description check duplicate a displayname by key
+// @Param	displayname		path 		true		"displayname"
 // @Success 200 {string} displayname
-// @Failure 403 body is empty
-// @router /:displayname [get]
+// @Failure 400 displayname is empty (code: 10002)
+// @Failure 400 displayname is already exists (code: 10006)
+// @router /checkDisplayName/:displayname [get]
 func (c *AuthController) CheckDisplayName() {
 
 	displayname := c.GetString(":displayname")
@@ -65,22 +66,8 @@ func (c *AuthController) CheckDisplayName() {
 }
 
 // CreateUser ...
-// @Title CreateUser except social
-// @Description create users
-// @Param	displayname		query 	string	true		"displayname"
-// @Param	email			query 	string	true		"email"
-// @Param	password		query 	string	true		"password"
-// @Success 200 {int} models.User.UID
-// @Failure 403 body is empty
-// @router /CreateUser [post]
 func (c *AuthController) CreateUser() {
 	var user models.User
-	/*
-		err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
-		if err != nil {
-			c.ResponseError(libs.ErrJSONUnmarshal, err)
-		}
-	*/
 	body, _ := ioutil.ReadAll(c.Ctx.Request.Body)
 	err := json.Unmarshal(body, &user)
 	if err != nil {
@@ -122,13 +109,6 @@ func (c *AuthController) CreateUser() {
 }
 
 // Login ...
-// @Title Login
-// @Description Logs user into the system
-// @Param	displayname		query 	string	true		"displayname for login"
-// @Param	password		query 	string	true		"password for login"
-// @Success 200 {string} login success
-// @Failure 403 user not exist
-// @router /login [post]
 func (c *AuthController) Login() {
 	var user models.User
 
@@ -174,7 +154,12 @@ func (c *AuthController) CheckLogin() {
 
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(c.Ctx.Request.Header.Get("Authorization"))
-	valid, uid, err := et.ValidateToken(authtoken)
+	// new add Bearer
+	splitToken := strings.Split(authtoken, "Bearer ")
+	if len(splitToken) != 2 {
+		c.ResponseError(libs.ErrTokenInvalid, nil)
+	}
+	valid, uid, err := et.ValidateToken(splitToken[1])
 
 	beego.Info("Check Login: ", uid, valid)
 	//fmt.Println("Check Login: ", uid, valid)
@@ -196,13 +181,6 @@ func (c *AuthController) CheckLogin() {
 }
 
 // Social ...
-// @Title CreateUser or SigninUser for social FB and G+
-// @Description create social users or signin
-// @Param	provider		query 	string	true		"The provider (FB, G+)"
-// @Param	accessToken		query 	string	true		"The accessToken"
-// @Success 200 {int}
-// @Failure 403 body is empty
-// @router /Social [post]
 func (c *AuthController) Social() {
 	var social Social
 	body, _ := ioutil.ReadAll(c.Ctx.Request.Body)
@@ -247,16 +225,12 @@ func (c *AuthController) Social() {
 
 }
 
-// @Title Logout
-// @Description Logs user into the system
-// @Param	displayname		query 	string	true		"The displayname for login"
-// @Param	password		query 	string	true		"The password for login"
-// @Success 200 {string} login success
-// @Failure 403 user not exist
-// @router /login [post]
+/*
+// Logout ...
 func (c *AuthController) Logout() {
 
 }
+*/
 
 func (c *AuthController) createSocialUser(user models.User) {
 

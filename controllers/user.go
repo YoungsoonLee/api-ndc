@@ -70,7 +70,7 @@ func (u *UserController) ResendConfirmEmail() {
 	}
 
 	// update token and send email with confirm token
-	_, err = models.ResendConfirmEmail(user)
+	user, err = models.ResendConfirmEmail(user)
 	if err != nil {
 		beego.Error("email confirm update error: ", err)
 		u.ResponseError(libs.ErrDatabase, err)
@@ -177,9 +177,12 @@ func (u *UserController) GetProfile() {
 
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
-	beego.Info("token: ", authtoken)
-
-	valid, uid, err := et.ValidateToken(authtoken)
+	// new add Bearer
+	splitToken := strings.Split(authtoken, "Bearer ")
+	if len(splitToken) != 2 {
+		u.ResponseError(libs.ErrTokenInvalid, nil)
+	}
+	valid, uid, err := et.ValidateToken(splitToken[1])
 
 	//beego.Info("Check Login: ", uid, valid)
 	//fmt.Println("Check Login: ", uid, valid)
@@ -202,9 +205,12 @@ func (u *UserController) UpdateProfile() {
 
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
-	//beego.Info("token: ", authtoken)
-
-	valid, uid, err := et.ValidateToken(authtoken)
+	// new add Bearer
+	splitToken := strings.Split(authtoken, "Bearer ")
+	if len(splitToken) != 2 {
+		u.ResponseError(libs.ErrTokenInvalid, nil)
+	}
+	valid, uid, err := et.ValidateToken(splitToken[1])
 
 	if !valid || err != nil {
 		u.ResponseError(libs.ErrExpiredToken, err)
@@ -228,9 +234,15 @@ func (u *UserController) UpdateProfile() {
 func (u *UserController) UpdatePassword() {
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
-	//beego.Info("token: ", authtoken)
+	// new add Bearer
+	splitToken := strings.Split(authtoken, "Bearer ")
+	if len(splitToken) != 2 {
+		u.ResponseError(libs.ErrTokenInvalid, nil)
+	}
+	valid, uid, err := et.ValidateToken(splitToken[1])
 
-	valid, uid, err := et.ValidateToken(authtoken)
+	//beego.Info("token: ", authtoken)
+	//valid, uid, err := et.ValidateToken(authtoken)
 
 	if !valid || err != nil {
 		u.ResponseError(libs.ErrExpiredToken, err)

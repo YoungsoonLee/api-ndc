@@ -12,12 +12,6 @@ type PaymentGatewayController struct {
 }
 
 // Post ...
-// @Title Create Payment Gateway
-// @Description create payment gateway
-// @Param	pg_description	json 	string	false		"pg description"
-// @Success 200 {int} models.PaymentGateway.PgID
-// @Failure 403 body is empty
-// @router / [post]
 func (p *PaymentGatewayController) Post() {
 
 	var pg models.PaymentGateway

@@ -12,13 +12,6 @@ type PaymentCategoryController struct {
 }
 
 // Post ...
-// @Title Create Payment Category
-// @Description create payment category
-// @Param	category				json 	INT		false		"100: for paid charge, 200: free rewards, 300: free bonus"
-// @Param	category_description	json 	string	false		"category description"
-// @Success 200 {int} models.PaymentCategory.CategoryID
-// @Failure 403 body is empty
-// @router / [post]
 func (p *PaymentCategoryController) Post() {
 
 	var pc models.PaymentCategory

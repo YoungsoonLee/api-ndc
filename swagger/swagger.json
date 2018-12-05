@@ -1,0 +1,128 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Naddic platform API",
+        "description": "Naddic platform API",
+        "version": "1.0.0",
+        "contact": {
+            "email": "youngtip@naddic.com"
+        },
+        "license": {}
+    },
+    "basePath": "/v1",
+    "paths": {
+        "/auth/checkDisplayName/{displayname}": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "check duplicate a displayname by key",
+                "operationId": "AuthController.CheckDisplayName",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "displayname",
+                        "description": "displayname",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/models.RespCode"
+                        }
+                    },
+                    "400": {
+                        "description": "code:10002 displayname is empty<br/> code:10006 displayname is already exists",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrRespCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register":{
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "Create User",
+                "operationId": "AuthController.CreateUser",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "Displayname",
+                        "description": "Displayname",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "Email",
+                        "description": "Email",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "Password",
+                        "description": "Password",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/models.RespCode"
+                        }
+                    },
+                    "400": {
+                        "description": "-",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrRespCode"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.RespCode": {
+            "title": "RespCode",
+            "type": "RespCode",
+            "properties": {
+                "Code": {
+                    "type": "string"
+                },
+                "Message": {
+                    "type": "string"
+                },
+                "DevInfo": {
+                    "type": "string"
+                },
+                "Data": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ErrRespCode": {
+            "title": "ErrRespCode",
+            "type": "ErrRespCode",
+            "properties": {
+                "Code": {
+                    "type": "string"
+                },
+                "Message": {
+                    "type": "string"
+                },
+                "DevInfo": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

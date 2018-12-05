@@ -1,10 +1,10 @@
 // @APIVersion 1.0.0
-// @Title beego Test API
-// @Description beego has a very cool tools to autogenerate documents for your API
-// @Contact astaxie@gmail.com
-// @TermsOfServiceUrl http://beego.me/
-// @License Apache 2.0
-// @LicenseUrl http://www.apache.org/licenses/LICENSE-2.0.html
+// @Title Naddic platform API
+// @Description Naddic platform API
+// @Contact youngtip@naddic.com
+// @TermsOfServiceUrl
+// @License
+// @LicenseUrl
 package routers
 
 import (
@@ -35,7 +35,7 @@ func init() {
 			beego.NSRouter("/login", &controllers.AuthController{}, "post:Login"),
 			beego.NSRouter("/checkLogin", &controllers.AuthController{}, "get:CheckLogin"),
 			beego.NSRouter("/social", &controllers.AuthController{}, "post:Social"),
-			beego.NSRouter("/logout", &controllers.AuthController{}, "post:Logout"),
+			//beego.NSRouter("/logout", &controllers.AuthController{}, "post:Logout"),
 		),
 
 		beego.NSNamespace("/billing",

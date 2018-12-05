@@ -105,11 +105,6 @@ type ResultDeduct struct {
 }
 
 // GetChargeItems ...
-// @Title Create Payment Category
-// @Description create payment category
-// @Success 200 {int} models.PaymentItem.ItemID
-// @Failure 403 body is empty
-// @router / [GET]
 func (b *BillingController) GetChargeItems() {
 
 	// save to db
@@ -123,20 +118,16 @@ func (b *BillingController) GetChargeItems() {
 }
 
 // GetPaymentToken ...
-// @Title Get PaymentToken
-// @Description create payment category
-// @Param	UID			json 	INT		false		"user id"
-// @Param	ItemID		json 	INT		false		"item id"
-// @Success 200 {int} models.PaymentItem.PayTryID
-// @Failure 403 body is empty
-// @router / [post]
 func (b *BillingController) GetPaymentToken() {
 
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
-	beego.Info("token: ", authtoken)
-
-	valid, uid, err := et.ValidateToken(authtoken)
+	// new add Bearer
+	splitToken := strings.Split(authtoken, "Bearer ")
+	if len(splitToken) != 2 {
+		b.ResponseError(libs.ErrTokenInvalid, nil)
+	}
+	valid, uid, err := et.ValidateToken(splitToken[1])
 
 	if !valid || err != nil {
 		b.ResponseError(libs.ErrExpiredToken, err)
@@ -299,18 +290,32 @@ func (b *BillingController) BuyItem() {
 
 	start := time.Now()
 
-	// TODO: need more performance !!!
-	// get header for auth
-	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
-	if authtoken == "" {
-		b.ResponseError(libs.ErrTokenAbsent, errors.New(libs.ErrTokenAbsent.Message))
-	}
-	// check UID, check valid token
 	et := libs.EasyToken{}
-	valid, uid, err := et.ValidateToken(authtoken)
+	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+	// new add Bearer
+	splitToken := strings.Split(authtoken, "Bearer ")
+	if len(splitToken) != 2 {
+		b.ResponseError(libs.ErrTokenInvalid, nil)
+	}
+	valid, uid, err := et.ValidateToken(splitToken[1])
 	if !valid || err != nil {
 		b.ResponseError(libs.ErrExpiredToken, err)
 	}
+
+	// TODO: need more performance !!!
+	// get header for auth
+	/*
+		authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+		if authtoken == "" {
+			b.ResponseError(libs.ErrTokenAbsent, errors.New(libs.ErrTokenAbsent.Message))
+		}
+		// check UID, check valid token
+		et := libs.EasyToken{}
+		valid, uid, err := et.ValidateToken(authtoken)
+		if !valid || err != nil {
+			b.ResponseError(libs.ErrExpiredToken, err)
+		}
+	*/
 
 	// get body
 	var deductInput DeductInput
@@ -629,10 +634,22 @@ func (b *BillingController) GetBalance() {
 // GetDeductHash ...
 // for test or something
 func (b *BillingController) GetDeductHash() {
+	et := libs.EasyToken{}
+	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+	// new add Bearer
+	splitToken := strings.Split(authtoken, "Bearer ")
+	if len(splitToken) != 2 {
+		b.ResponseError(libs.ErrTokenInvalid, nil)
+	}
+	valid, _, err := et.ValidateToken(splitToken[1])
+	if !valid || err != nil {
+		b.ResponseError(libs.ErrExpiredToken, err)
+	}
+
 	var input HashedBody
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	err := json.Unmarshal(body, &input)
+	err = json.Unmarshal(body, &input)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
@@ -657,9 +674,6 @@ func (b *BillingController) GetDeductHash() {
 }
 
 // CallbackXsolla ...
-// @Title Get xsolla callback data
-// @Description xsolla send callbac data
-//
 func (b *BillingController) CallbackXsolla() {
 	var xsollaData XSollaData
 

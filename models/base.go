@@ -8,6 +8,13 @@ type RespCode struct {
 	Data    map[string]interface{} `json:"data"`
 }
 
+// one return value
+type ErrRespCode struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	DevInfo string `json:"devinfo"`
+}
+
 // multi return value
 type MrespCode struct {
 	Code    string      `json:"code"`

@@ -25,12 +25,20 @@ func (b *BaseController) ResponseError(e *libs.ControllerError, err error) {
 	}
 	beego.Error(b.Ctx.Request.RequestURI, e.Message, devInfo)
 
-	response := &models.RespCode{
+	/*
+		response := &models.RespCode{
+			Code:    e.Code,
+			Message: e.Message,
+			DevInfo: devInfo,
+			Data:    nil,
+		}
+	*/
+	response := &models.ErrRespCode{
 		Code:    e.Code,
 		Message: e.Message,
 		DevInfo: devInfo,
-		Data:    nil,
 	}
+
 	b.Ctx.Output.Status = e.Status
 	b.Ctx.Output.JSON(response, true, true)
 
