@@ -101,7 +101,7 @@ paths:
         - Bearer: []
       tags:
         - auth
-      description: Check login with JWT. set Authorization Bearer token in header. You can click the lock icon on right side and set JWT. 
+      description: 'Check login with JWT. Set Authorization Bearer token in header. You can click the lock icon on right side and set JWT. ex) Authorization: Bearer JWT'
       operationId: AuthController.CheckLogin
       responses:
         '200':
@@ -117,7 +117,7 @@ paths:
     post:
       tags:
         - user
-      description: Confrim email
+      description: Confrim email with confirm email token
       operationId: UserController.ConfirmEmail
       parameters:
         - in: path
@@ -144,7 +144,7 @@ paths:
       parameters:
         - in: path
           name: email
-          description: email
+          description: Input the email
           required: true
           type: string
       responses:
@@ -156,11 +156,12 @@ paths:
           description: 'code:10002 displayname is empty<br/> code:10006 displayname is already exists'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
+
   '/user/forgotPassword/{email}':
     post:
       tags:
         - user
-      description: forgot password
+      description: forgot password. 
       operationId: UserController.ResendConfirmEmail
       parameters:
         - in: path
@@ -177,6 +178,7 @@ paths:
           description: 'code:10002 displayname is empty<br/> code:10006 displayname is already exists'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
+            
   '/user/isValidResetPasswordToken/{resetToken}':
     post:
       tags:
@@ -198,6 +200,7 @@ paths:
           description: 'code:10002 displayname is empty<br/> code:10006 displayname is already exists'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
+            
 definitions:
   models.RespCode:
     title: RespCode
