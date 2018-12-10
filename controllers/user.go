@@ -229,11 +229,17 @@ func (u *UserController) UpdateProfile() {
 
 	fmt.Println("---2---", user)
 
-	err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+	body, _ := ioutil.ReadAll(u.Ctx.Request.Body)
+	err = json.Unmarshal(body, &user)
 	if err != nil {
 		u.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
-
+	/*
+		err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+		if err != nil {
+			u.ResponseError(libs.ErrJSONUnmarshal, err)
+		}
+	*/
 	fmt.Println("---3---", user)
 
 	if _, err := models.UpdateProfile(user); err != nil {
@@ -263,10 +269,18 @@ func (u *UserController) UpdatePassword() {
 	var user models.User
 	user.UID = uid
 
-	err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+	body, _ := ioutil.ReadAll(u.Ctx.Request.Body)
+	err = json.Unmarshal(body, &user)
 	if err != nil {
 		u.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
+
+	/*
+		err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
+		if err != nil {
+			u.ResponseError(libs.ErrJSONUnmarshal, err)
+		}
+	*/
 
 	if _, err := models.UpdatePassword(user); err != nil {
 		u.ResponseError(libs.ErrDatabase, err)
