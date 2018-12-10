@@ -211,16 +211,18 @@ func (u *UserController) UpdateProfile() {
 
 	// new add Bearer
 	splitToken := strings.Split(authtoken, "Bearer ")
-	fmt.Println("splitToken: ", splitToken, len(splitToken), splitToken[1])
+	fmt.Println("splitToken: ", splitToken, len(splitToken))
 
 	if len(splitToken) != 2 {
 		u.ResponseError(libs.ErrTokenInvalid, nil)
 	}
-	valid, uid, err := et.ValidateToken(splitToken[1])
 
+	valid, uid, err := et.ValidateToken(splitToken[1])
 	if !valid || err != nil {
 		u.ResponseError(libs.ErrExpiredToken, err)
 	}
+
+	fmt.Println("---1---")
 
 	var user models.User
 	err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
@@ -229,6 +231,8 @@ func (u *UserController) UpdateProfile() {
 	}
 
 	user.UID = uid
+
+	fmt.Println("---2---", user)
 
 	if _, err := models.UpdateProfile(user); err != nil {
 		u.ResponseError(libs.ErrDatabase, err)
