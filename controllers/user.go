@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -205,8 +206,13 @@ func (u *UserController) UpdateProfile() {
 
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
+
+	fmt.Println("authtoken: ", authtoken)
+
 	// new add Bearer
 	splitToken := strings.Split(authtoken, "Bearer ")
+	fmt.Println("splitToken: ", splitToken, len(splitToken))
+
 	if len(splitToken) != 2 {
 		u.ResponseError(libs.ErrTokenInvalid, nil)
 	}
