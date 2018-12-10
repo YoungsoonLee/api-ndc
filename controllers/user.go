@@ -225,6 +225,8 @@ func (u *UserController) UpdateProfile() {
 	fmt.Println("---1---")
 
 	var user models.User
+	fmt.Println("---2---", user)
+
 	err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
 	if err != nil {
 		u.ResponseError(libs.ErrJSONUnmarshal, err)
@@ -232,7 +234,7 @@ func (u *UserController) UpdateProfile() {
 
 	user.UID = uid
 
-	fmt.Println("---2---", user)
+	fmt.Println("---3---", user)
 
 	if _, err := models.UpdateProfile(user); err != nil {
 		u.ResponseError(libs.ErrDatabase, err)
