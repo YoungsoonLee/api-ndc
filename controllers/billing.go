@@ -636,8 +636,13 @@ func (b *BillingController) GetBalance() {
 func (b *BillingController) GetDeductHash() {
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+
+	fmt.Println("authtoken: ", authtoken)
+
 	// new add Bearer
 	splitToken := strings.Split(authtoken, "Bearer ")
+	fmt.Println("splitToken: ", splitToken)
+
 	if len(splitToken) != 2 {
 		b.ResponseError(libs.ErrTokenInvalid, nil)
 	}
