@@ -211,7 +211,7 @@ func (u *UserController) UpdateProfile() {
 
 	// new add Bearer
 	splitToken := strings.Split(authtoken, "Bearer ")
-	fmt.Println("splitToken: ", splitToken, len(splitToken))
+	fmt.Println("splitToken: ", splitToken, len(splitToken), splitToken[1])
 
 	if len(splitToken) != 2 {
 		u.ResponseError(libs.ErrTokenInvalid, nil)
