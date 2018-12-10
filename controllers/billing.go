@@ -641,11 +641,12 @@ func (b *BillingController) GetDeductHash() {
 
 	// new add Bearer
 	splitToken := strings.Split(authtoken, "Bearer ")
-	fmt.Println("splitToken: ", splitToken)
+	fmt.Println("splitToken: ", splitToken, len(splitToken))
 
 	if len(splitToken) != 2 {
 		b.ResponseError(libs.ErrTokenInvalid, nil)
 	}
+
 	valid, _, err := et.ValidateToken(splitToken[1])
 	if !valid || err != nil {
 		b.ResponseError(libs.ErrExpiredToken, err)
