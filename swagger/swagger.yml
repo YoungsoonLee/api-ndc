@@ -131,7 +131,7 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: 'code:10002 displayname is empty<br/> code:10006 displayname is already exists'
+          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
             
@@ -153,7 +153,7 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: 'code:10002 displayname is empty<br/> code:10006 displayname is already exists'
+          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
 
@@ -175,7 +175,7 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: 'code:10002 displayname is empty<br/> code:10006 displayname is already exists'
+          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
             
@@ -197,7 +197,47 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: 'code:10002 displayname is empty<br/> code:10006 displayname is already exists'
+          description: '-'
+          schema:
+            $ref: '#/definitions/models.ErrRespCode'
+
+  /user/resetPassword/:
+    post:
+      tags:
+        - user
+      description: Check password reset token
+      operationId: UserController.ResetPassword
+      parameters:
+        - in: path
+          name: resetToken
+          description: resetToken
+          required: true
+          type: string
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/models.RespCode'
+        '400':
+          description: '-'
+          schema:
+            $ref: '#/definitions/models.ErrRespCode'
+  
+  /user/getProfile:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - user
+      description: Get User Info with JWT
+      operationId: UserController.GetProfile
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/models.RespCode'
+        '400':
+          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
             
