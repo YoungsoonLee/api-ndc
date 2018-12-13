@@ -222,12 +222,8 @@ func (u *UserController) UpdateProfile() {
 		u.ResponseError(libs.ErrExpiredToken, err)
 	}
 
-	fmt.Println("---1---")
-
 	var user models.User
 	user.UID = uid
-
-	fmt.Println("---2---", user)
 
 	body, _ := ioutil.ReadAll(u.Ctx.Request.Body)
 	err = json.Unmarshal(body, &user)

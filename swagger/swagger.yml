@@ -240,6 +240,35 @@ paths:
           description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
+
+  /user/updateProfile:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - user
+      description: Update user's displayname or email
+      operationId: UserController.UpdateProfile
+      parameters:
+        - in: body
+          name: Update user's displayname or email
+          description: Input displayname or email.
+          schema:
+            type: object
+            properties:
+              displayname:
+                type: string
+              email:
+                type: string
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/models.RespCode'
+        '400':
+          description: '-'
+          schema:
+            $ref: '#/definitions/models.ErrRespCode'
             
 definitions:
   models.RespCode:
