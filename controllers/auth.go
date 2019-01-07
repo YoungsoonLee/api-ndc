@@ -230,6 +230,8 @@ func (c *AuthController) Social() {
 func (c *AuthController) Logout() {
 
 }
+
+
 */
 
 func (c *AuthController) createSocialUser(user models.User) {
