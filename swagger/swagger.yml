@@ -62,7 +62,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
 
@@ -91,7 +90,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
 
@@ -109,7 +107,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
 
@@ -131,7 +128,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
             
@@ -153,7 +149,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
 
@@ -175,7 +170,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
             
@@ -197,7 +191,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
 
@@ -219,7 +212,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
   
@@ -237,7 +229,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
 
@@ -266,7 +257,6 @@ paths:
           schema:
             $ref: '#/definitions/models.RespCode'
         '400':
-          description: '-'
           schema:
             $ref: '#/definitions/models.ErrRespCode'
             
