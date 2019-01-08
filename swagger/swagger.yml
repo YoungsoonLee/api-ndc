@@ -259,6 +259,50 @@ paths:
         '400':
           schema:
             $ref: '#/definitions/models.ErrRespCode'
+
+  /user/updatePassword:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - user
+      description: Update user's password
+      operationId: UserController.UpdatePassword
+      parameters:
+        - in: body
+          name: Update user's password
+          description: Input password
+          schema:
+            type: object
+            properties:
+              displayname:
+                type: string
+              email:
+                type: string
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/models.RespCode'
+        '400':
+          schema:
+            $ref: '#/definitions/models.ErrRespCode'
+
+  /billing/getChargeItems/:
+    get:
+      tags:
+        - billing
+      description: Get Charge Item List
+      operationId: BillingController.GetChargeItems
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/models.RespCode'
+        '400':
+          schema:
+            $ref: '#/definitions/models.ErrRespCode'
+
             
 definitions:
   models.RespCode:

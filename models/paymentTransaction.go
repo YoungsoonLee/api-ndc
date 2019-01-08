@@ -52,7 +52,9 @@ func GetPayTransaction(UID string) ([]PaymentTransaction, error) {
 	sql := "SELECT " +
 		" \"PxID\" , " +
 		" \"TxID\", " +
+		" \"ItemID\", " +
 		" Item_Name, " +
+		" \"PgID\", " +
 		" Price, " +
 		" Amount, " +
 		" Transaction_At" +

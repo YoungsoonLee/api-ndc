@@ -243,6 +243,8 @@ func (b *BillingController) GetChargeHistory() {
 	}
 
 	//fmt.Println(paytransacsion)
+	// TODO:
+	// need to change return null to error response body. if not use tabulator.
 
 	b.ResponseSuccess("tabulator", paytransacsion)
 }
@@ -262,6 +264,8 @@ func (b *BillingController) GetUsedHistory() {
 	}
 
 	//fmt.Println(duductHistory)
+	// TODO:
+	// need to change return null to error response body. if not use tabulator.
 
 	b.ResponseSuccess("tabulator", duductHistory)
 }

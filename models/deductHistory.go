@@ -47,6 +47,7 @@ func GetUsedHistory(UID string) ([]DeductHistory, error) {
 		" \"ID\" , " +
 		" \"UID\", " +
 		" \"ExternalTxID\", " +
+		" \"ExternalItemID\", " +
 		" external_item_name, " +
 		" Amount, " +
 		" Deduct_by_free, " +
