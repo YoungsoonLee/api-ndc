@@ -34,6 +34,7 @@ var (
 	ErrLoginGoogle      = &ControllerError{400, "10018", "Your disaplayname is connected a Google. use Google login."}
 
 	/*
+
 		ErrNoUserPass   = &ControllerError{400, "10006", "User information does not exist or the password is incorrect"}
 		ErrNoUserChange = &ControllerError{400, "10007", "User information does not exist or data has not changed"}
 		ErrInvalidUser  = &ControllerError{400, "10008", "User information is incorrect"}
