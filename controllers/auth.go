@@ -262,7 +262,7 @@ func (c *AuthController) makeLogin(user *models.User) {
 	et := libs.EasyToken{
 		Displayname: user.Displayname,
 		UID:         user.UID,
-		Expires:     time.Now().Unix() + 3600*24*7, // 7days, 1 hour(3600)
+		Expires:     time.Now().Unix() + 3600*24*7, // 7days, 1 hour(3600).
 	}
 
 	token, err := et.GetToken()
