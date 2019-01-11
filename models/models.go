@@ -3,7 +3,7 @@ package models
 import (
 	"github.com/astaxie/beego/orm"
 	_ "github.com/lib/pq"
-	//_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql" ...
 )
 
 // RegisterDB ...
