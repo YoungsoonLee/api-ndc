@@ -34,9 +34,10 @@ type User struct {
 	ProviderAccessToken string     `orm:"size(1000);null" json:"provider_access_token"`
 	Permission          string     `orm:"size(50);default(user)" json:"permission"`     // user, admin ...
 	Status              string     `orm:"size(50);default(normal)" json:"status"`       // normal, ban, close ...
+	IP                  string     `orm:"column(IP);size(20);null" json:"ip"`           // TODO: insert db
 	CreateAt            time.Time  `orm:"type(datetime);auto_now_add" json:"create_at"` // first save
 	UpdateAt            time.Time  `orm:"type(datetime);auto_now" json:"update_at"`     // eveytime save
-	Balance             int        `orm:"-" json:"balance"`                             // wallet's balance
+	Balance             int        `orm:"-" json:"balance"`                             // wallet's balance, only for json
 }
 
 // UserFilter ...
@@ -255,7 +256,9 @@ func FindAuthByDisplayname(displayname string) (User, error) {
 		" Displayname, " +
 		" Password, " +
 		" Salt, " +
-		" Provider " +
+		" Provider, " +
+		" Confirmed, " +
+		" Status " +
 		" FROM \"user\" " +
 		" WHERE Displayname = ?"
 	err := o.Raw(sql, displayname).QueryRow(&user)

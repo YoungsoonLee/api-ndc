@@ -61,8 +61,8 @@ type XSollaData struct {
 type DeductInput struct {
 	/***
 	 * Inputs ...
+	 *  access_token: 유저 ID
 	 * 	service_id: 각 게임 별 할당 되는 고유 ID
-	 * 	access_toke: 유저 ID
 	 * 	external_txid: 각 게임 서비스 고유의 트랜잭션 ID
 	 * 	external_itemid: 각 게임 서비스의 구매시의 해당 아이템 ID. (조회, 통계, 추적용)
 	 * 	external_itemname: 각 게임 서비스의 구매시의 해당 아이템 이름. (조회, 통계, 추적용)
@@ -78,6 +78,7 @@ type DeductInput struct {
 	 * 	deduct_id: cyber coin 차감 후 발생한 고유 트랜잭션 ID
 	 *
 	 */
+	AccessToken      string `json:"access_token"`
 	ServiceID        string `json:"service_id"`
 	ExternalTxID     string `json:"external_txid"`
 	ExternalItemID   string `json:"external_itemid"`
@@ -87,6 +88,7 @@ type DeductInput struct {
 }
 
 type HashedBody struct {
+	AccessToken      string `json:"access_token"`
 	ServiceID        string `json:"service_id"`
 	ExternalTxID     string `json:"external_txid"`
 	ExternalItemID   string `json:"external_itemid"`
@@ -275,6 +277,7 @@ func (b *BillingController) GetUsedHistory() {
 func (b *BillingController) BuyItem() {
 	/***
 	 * Inputs ...
+	 * 	access_token : 유저 Id
 	 * 	service_id: 각 게임 별 할당 되는 고유 ID
 	 * 	external_id: 각 게임 서비스 고유의 트랜잭션 ID
 	 * 	item_name: 각 게임 서비스의 구매시의 해당 아이템 이름. (조회, 통계, 추적용)
@@ -294,37 +297,26 @@ func (b *BillingController) BuyItem() {
 
 	start := time.Now()
 
-	et := libs.EasyToken{}
-	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
-	// new add Bearer
-	splitToken := strings.Split(authtoken, "Bearer ")
-	if len(splitToken) != 2 {
-		b.ResponseError(libs.ErrTokenInvalid, nil)
-	}
-	valid, uid, err := et.ValidateToken(splitToken[1])
-	if !valid || err != nil {
-		b.ResponseError(libs.ErrExpiredToken, err)
-	}
-
-	// TODO: need more performance !!!
-	// get header for auth
 	/*
-		authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
-		if authtoken == "" {
-			b.ResponseError(libs.ErrTokenAbsent, errors.New(libs.ErrTokenAbsent.Message))
-		}
-		// check UID, check valid token
 		et := libs.EasyToken{}
-		valid, uid, err := et.ValidateToken(authtoken)
+		authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+		// new add Bearer
+		splitToken := strings.Split(authtoken, "Bearer ")
+		if len(splitToken) != 2 {
+			b.ResponseError(libs.ErrTokenInvalid, nil)
+		}
+		valid, uid, err := et.ValidateToken(splitToken[1])
 		if !valid || err != nil {
 			b.ResponseError(libs.ErrExpiredToken, err)
 		}
 	*/
 
+	// TODO: need more performance !!!
+
 	// get body
 	var deductInput DeductInput
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	err = json.Unmarshal(body, &deductInput)
+	err := json.Unmarshal(body, &deductInput)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
@@ -339,6 +331,7 @@ func (b *BillingController) BuyItem() {
 	}
 
 	var hashed HashedBody
+	hashed.AccessToken = deductInput.AccessToken
 	hashed.ExternalTxID = deductInput.ExternalTxID
 	hashed.ExternalItemID = deductInput.ExternalItemID
 	hashed.Amount = deductInput.Amount
@@ -357,19 +350,10 @@ func (b *BillingController) BuyItem() {
 		b.ResponseError(libs.ErrInvalidSignature, errors.New(libs.ErrInvalidSignature.Message))
 	}
 
-	// test, query with paytransacion and user
-	/*
-		deductPT, err := models.GetDeductPayTransactionUser(uid)
-		if err != nil {
-			beego.Error(err)
-			b.ResponseError(libs.ErrNoUser, err)
-		}
-	*/
-
 	// TODO: make log file for inputs... with go routine ??
 
 	// get userinfo for getting balance
-	user, err := models.FindByID(uid)
+	user, err := models.FindByID(deductInput.AccessToken)
 	if err != nil {
 		b.ResponseError(libs.ErrNoUser, err)
 	}
@@ -387,17 +371,9 @@ func (b *BillingController) BuyItem() {
 		s := "Need more " + strconv.Itoa(deductInput.Amount-user.Balance) + " balance"
 		b.ResponseError(libs.ErrLowBalance, errors.New(s))
 	}
-	/*
-		if deductPT.Balance < deductInput.Amount {
-			// low balance
-			s := "Need more " + strconv.Itoa(deductInput.Amount-deductPT.Balance) + " balance"
-			b.ResponseError(libs.ErrLowBalance, errors.New(s))
-		}
-	*/
 
 	// check amount_after_used in paytransaction
 	//	... amount_after_used 가 0이 아닌것 중에서 가장 오래된 데이터 한건 가져오기...
-
 	deductPT, err := models.GetDeductPayTransaction(user.UID)
 	if err != nil {
 		b.ResponseError(libs.ErrNoPaytransaction, err)
@@ -583,9 +559,6 @@ func (b *BillingController) BuyItem() {
 	}
 	*/
 
-	//fmt.Println(deductFree, deductPaid)
-
-	// TODO: go routine ???
 	// insert deduct history with go routine
 	var d models.DeductHistory
 	//d.UID = user.UID
@@ -599,27 +572,8 @@ func (b *BillingController) BuyItem() {
 	d.DeductByPaid = deductPaid
 	d.BalanceAfterBuy = uf.Balance
 
+	// go routine
 	go models.AddDeductHistory(d)
-	/*
-		err = models.AddDeductHistory(d)
-		if err != nil {
-			// TODO: just make a logging file
-			beego.Error("AddDeductHistory: ", err)
-		}
-	*/
-
-	// return
-	/*
-		var r ResultDeduct
-		//d.UID = user.UID
-		r.UID = deductPT.UID
-		r.ServiceID = deductInput.ServiceID
-		r.ItemName = deductInput.ItemName
-		r.ItemID = deductInput.ItemID
-		r.ItemAmount = deductInput.ItemAmount
-		r.ExternalID = deductInput.ExternalID
-		r.BalanceAfterBuy = uf.Balance
-	*/
 
 	beego.Info("Deducted Time: ", time.Since(start))
 
@@ -629,37 +583,38 @@ func (b *BillingController) BuyItem() {
 }
 
 // GetBalance ...
+// post , uid
 func (b *BillingController) GetBalance() {
-	// ...
-	// check header authorization.
-	// keep time
+
 }
 
 // GetDeductHash ...
 // for test or something
 func (b *BillingController) GetDeductHash() {
-	et := libs.EasyToken{}
-	authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
+	/*
+		et := libs.EasyToken{}
+		authtoken := strings.TrimSpace(b.Ctx.Request.Header.Get("Authorization"))
 
-	fmt.Println("authtoken: ", authtoken)
+		fmt.Println("authtoken: ", authtoken)
 
-	// new add Bearer
-	splitToken := strings.Split(authtoken, "Bearer ")
-	fmt.Println("splitToken: ", splitToken, len(splitToken))
+		// new add Bearer
+		splitToken := strings.Split(authtoken, "Bearer ")
+		fmt.Println("splitToken: ", splitToken, len(splitToken))
 
-	if len(splitToken) != 2 {
-		b.ResponseError(libs.ErrTokenInvalid, nil)
-	}
+		if len(splitToken) != 2 {
+			b.ResponseError(libs.ErrTokenInvalid, nil)
+		}
 
-	valid, _, err := et.ValidateToken(splitToken[1])
-	if !valid || err != nil {
-		b.ResponseError(libs.ErrExpiredToken, err)
-	}
+		valid, _, err := et.ValidateToken(splitToken[1])
+		if !valid || err != nil {
+			b.ResponseError(libs.ErrExpiredToken, err)
+		}
+	*/
 
 	var input HashedBody
 
 	body, _ := ioutil.ReadAll(b.Ctx.Request.Body)
-	err = json.Unmarshal(body, &input)
+	err := json.Unmarshal(body, &input)
 	if err != nil {
 		b.ResponseError(libs.ErrJSONUnmarshal, err)
 	}

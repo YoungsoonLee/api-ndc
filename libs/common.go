@@ -30,8 +30,10 @@ var (
 	ErrTokenOther       = &ControllerError{400, "10014", "Token other"}
 	ErrNoUser           = &ControllerError{400, "10015", "User information does not exist"}
 	ErrIDAbsent         = &ControllerError{400, "10016", "Id absent"}
-	ErrLoginFacebook    = &ControllerError{400, "10017", "Your disaplayname is connected a facebook. use facebook login."}
-	ErrLoginGoogle      = &ControllerError{400, "10018", "Your disaplayname is connected a Google. use Google login."}
+	ErrLoginFacebook    = &ControllerError{400, "10017", "Your account is connected a facebook. use facebook login."}
+	ErrLoginGoogle      = &ControllerError{400, "10018", "Your account is connected a Google. use Google login."}
+	ErrNotEmailConfirm  = &ControllerError{400, "10019", "You have been not your email confirmed yet."}
+	ErrUserBlock        = &ControllerError{400, "10020", "Your account is block."}
 
 	/*
 

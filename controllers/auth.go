@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -101,7 +100,7 @@ func (c *AuthController) CreateUser() {
 		c.ResponseError(libs.ErrDatabase, err)
 	}
 
-	fmt.Println("CreateUser: ", UID)
+	//fmt.Println("CreateUser: ", UID)
 
 	// auto login
 	user.UID = UID
@@ -130,12 +129,17 @@ func (c *AuthController) Login() {
 	}
 
 	//beego.Info(user)
-
 	if user.Provider == "facebook" && user.Password == "" {
 		c.ResponseError(libs.ErrLoginFacebook, nil)
 	}
 	if user.Provider == "google" && user.Password == "" {
 		c.ResponseError(libs.ErrLoginGoogle, nil)
+	}
+	if !user.Confirmed {
+		c.ResponseError(libs.ErrNotEmailConfirm, nil)
+	}
+	if user.Status == "ban" {
+		c.ResponseError(libs.ErrUserBlock, nil)
 	}
 
 	// check password
@@ -150,6 +154,17 @@ func (c *AuthController) Login() {
 }
 
 // CheckLogin ...
+// Request
+//	Header Authorization: Bearer token
+// Response
+//	success:
+//		-
+// error:
+//		- ErrExpiredToken: token expired
+//		- ErrNoUser: Not exists user
+//		- ErrBanUser:	Ban TODO:
+//		- ErrNotEmailConfirmed TODO:
+//		-
 func (c *AuthController) CheckLogin() {
 
 	et := libs.EasyToken{}
@@ -162,7 +177,6 @@ func (c *AuthController) CheckLogin() {
 	valid, uid, err := et.ValidateToken(splitToken[1])
 
 	beego.Info("Check Login: ", uid, valid)
-	//fmt.Println("Check Login: ", uid, valid)
 
 	if !valid || err != nil {
 		c.ResponseError(libs.ErrExpiredToken, err)
@@ -175,7 +189,7 @@ func (c *AuthController) CheckLogin() {
 		c.ResponseError(libs.ErrNoUser, err)
 	}
 
-	//beego.Info(user)
+	//TODO: check user's status such as Ban or something.
 
 	c.ResponseSuccess("", AuthedData{user.UID, user.Displayname, user.Balance, user.Picture})
 }
@@ -256,7 +270,7 @@ func (c *AuthController) updateSocialInfo(user models.User) {
 }
 
 func (c *AuthController) makeLogin(user *models.User) {
-	fmt.Println("makeLogin: ", user.UID)
+	//fmt.Println("makeLogin: ", user.UID)
 
 	// make JWT
 	et := libs.EasyToken{

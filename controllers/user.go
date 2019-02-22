@@ -102,7 +102,7 @@ func (u *UserController) ForogtPassword() {
 		u.ResponseError(libs.ErrDatabase, err)
 	}
 
-	u.ResponseSuccess("", user)
+	u.ResponseSuccess("", user.Displayname)
 }
 
 // IsValidResetPasswordToken ...
@@ -174,8 +174,6 @@ func (u *UserController) GetProfile() {
 		u.ResponseSuccess("", user)
 	*/
 
-	//fmt.Println("test")
-
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
 	// new add Bearer
@@ -186,7 +184,6 @@ func (u *UserController) GetProfile() {
 	valid, uid, err := et.ValidateToken(splitToken[1])
 
 	//beego.Info("Check Login: ", uid, valid)
-	//fmt.Println("Check Login: ", uid, valid)
 
 	if !valid || err != nil {
 		u.ResponseError(libs.ErrExpiredToken, err)
