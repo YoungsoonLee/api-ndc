@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -204,11 +203,8 @@ func (u *UserController) UpdateProfile() {
 	et := libs.EasyToken{}
 	authtoken := strings.TrimSpace(u.Ctx.Request.Header.Get("Authorization"))
 
-	fmt.Println("authtoken: ", authtoken)
-
 	// new add Bearer
 	splitToken := strings.Split(authtoken, "Bearer ")
-	fmt.Println("splitToken: ", splitToken, len(splitToken))
 
 	if len(splitToken) != 2 {
 		u.ResponseError(libs.ErrTokenInvalid, nil)
@@ -227,18 +223,43 @@ func (u *UserController) UpdateProfile() {
 	if err != nil {
 		u.ResponseError(libs.ErrJSONUnmarshal, err)
 	}
-	/*
-		err = json.Unmarshal(u.Ctx.Input.RequestBody, &user)
-		if err != nil {
-			u.ResponseError(libs.ErrJSONUnmarshal, err)
-		}
-	*/
-	fmt.Println("---3---", user)
 
-	if _, err := models.UpdateProfile(user); err != nil {
+	// TODO: if email changed, send email confirm. !!!
+	// TODO:  check dup displayname and email.
+
+	// get user unfo.
+
+	// validation
+	u.ValidDisplayname(user.Displayname)
+	u.ValidEmail(user.Email)
+
+	// seperate check for error msg
+	// check dup displayname
+	_, err = models.FindByDisplayname(user.Displayname)
+
+	// if err == nil, already exists displayname
+	if err == nil {
+		u.ResponseError(libs.ErrDupDisplayname, err)
+	}
+
+	// check dup email
+	oldUser, err := models.FindByEmail(user.Email)
+	// if err == nil, already exists Email
+	if err == nil {
+		u.ResponseError(libs.ErrDupEmail, err)
+	}
+
+	changedEmail := false
+	if oldUser.Email != user.Email {
+		changedEmail = true
+	}
+
+	var userFilter models.UserFilter
+	if userFilter, err = models.UpdateProfile(user, changedEmail); err != nil {
 		u.ResponseError(libs.ErrDatabase, err)
 	}
-	u.ResponseSuccess("", user)
+
+	u.ResponseSuccess("", userFilter)
 }
 
 // UpdatePassword ...

@@ -314,7 +314,7 @@ func FindByEmail(email string) (User, error) {
 
 // FindByID ...
 func FindByID(id string) (*UserFilter, error) {
-	beego.Info("findByID: ", id)
+	// beego.Info("findByID: ", id)
 	var user *UserFilter
 
 	o := orm.NewOrm()
@@ -485,15 +485,41 @@ func ResetPassword(resetToken, password string) error {
 }
 
 // UpdateProfile ...
-func UpdateProfile(u User) (User, error) {
-	//TODO: if email changed, send email confirm.
+func UpdateProfile(u User, changedEmail bool) (UserFilter, error) {
 
 	o := orm.NewOrm()
 	if _, err := o.Update(&u, "Displayname", "Email"); err != nil {
-		return User{}, err
+		return UserFilter{}, err
 	}
 
-	return u, nil
+	uf, err := FindByID(u.UID)
+	if err != nil {
+		return UserFilter{}, err
+	}
+
+	if changedEmail {
+		// send confirm mail async
+		beego.Info("changed email in update profile")
+
+		u2, err := uuid.NewV4()
+		if err != nil {
+			return UserFilter{}, err
+		}
+
+		u.ConfirmResetToken = u2.String()
+		u.ConfirmResetExpire = time.Now().Add(1 * time.Hour)
+		u.Confirmed = false
+
+		o := orm.NewOrm()
+		if _, err := o.Update(&u, "Confirmed", "ConfirmResetToken", "ConfirmResetExpire"); err != nil {
+			return UserFilter{}, err
+		}
+
+		// send confirm mail async
+		go libs.MakeMail(u.Email, "confirm", u.ConfirmResetToken)
+	}
+
+	return *uf, nil
 }
 
 // UpdatePassword ...
